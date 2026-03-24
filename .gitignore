@@ -1,0 +1,11 @@
+node_modules/
+venv/
+.dart_tool/
+.env
+__pycache__/
+*.pyc
+.next/
+build/
+.flutter-plugins-dependencies
+~$*
+*.zip
