@@ -16,3 +16,6 @@ requests
 transformers
 torch
 sentencepiece
+# Hafta 7 — Celery + Redis Cron Job
+celery[redis]
+redis
