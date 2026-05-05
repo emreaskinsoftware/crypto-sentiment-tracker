@@ -6,7 +6,7 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.asset import Asset
 from app.models.alert import Alert
-from app.schemas.alert import AlertCreate, AlertResponse
+from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 
 router = APIRouter(prefix="/alerts", tags=["Alerts"])
 
@@ -40,6 +40,47 @@ def create_alert(
         threshold=payload.threshold,
     )
     db.add(alert)
+    db.commit()
+    db.refresh(alert)
+    return alert
+
+
+@router.get("/{alert_id}", response_model=AlertResponse)
+def get_alert(
+    alert_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    alert = (
+        db.query(Alert)
+        .filter(Alert.id == alert_id, Alert.user_id == current_user.id)
+        .first()
+    )
+    if not alert:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alert not found")
+    return alert
+
+
+@router.patch("/{alert_id}", response_model=AlertResponse)
+def update_alert(
+    alert_id: int,
+    payload: AlertUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    alert = (
+        db.query(Alert)
+        .filter(Alert.id == alert_id, Alert.user_id == current_user.id)
+        .first()
+    )
+    if not alert:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alert not found")
+
+    if payload.is_active is not None:
+        alert.is_active = payload.is_active
+    if payload.threshold is not None:
+        alert.threshold = payload.threshold
+
     db.commit()
     db.refresh(alert)
     return alert

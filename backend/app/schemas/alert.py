@@ -5,8 +5,13 @@ from pydantic import BaseModel
 
 class AlertCreate(BaseModel):
     asset_symbol: str  # e.g., "BTC"
-    condition: str  # "sentiment_drops_below", "sentiment_rises_above", "news_volume_increase"
+    condition: str  # "sentiment_below", "sentiment_above", "price_below", "price_above"
     threshold: float
+
+
+class AlertUpdate(BaseModel):
+    is_active: bool | None = None
+    threshold: float | None = None
 
 
 class AlertResponse(BaseModel):
