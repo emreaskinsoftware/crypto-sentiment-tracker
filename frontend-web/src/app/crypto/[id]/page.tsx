@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,17 +11,21 @@ import {
   BarChart3,
   Globe,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
 import { cn, formatCurrency, formatCompactNumber } from "@/lib/utils";
 import { SentimentBadge } from "@/components/ui/SentimentBadge";
 import { PriceChart } from "@/components/detail/PriceChart";
 import { SentimentChart } from "@/components/detail/SentimentChart";
 import {
-  mockAssets,
-  mockSentimentLogs,
-  generatePriceHistory,
-  generateSentimentHistory,
-} from "@/lib/mock-data";
+  fetchAsset,
+  fetchChartData,
+  fetchSentimentLogs,
+  fetchSentimentSummary,
+  type ApiAsset,
+  type ApiSentimentLog,
+  type ApiChartPoint,
+} from "@/lib/api";
 
 const symbolColors: Record<string, string> = {
   BTC: "bg-orange-500",
@@ -40,7 +44,67 @@ export default function CryptoDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const asset = mockAssets.find((a) => a.id === id);
+
+  const [asset, setAsset] = useState<ApiAsset | null>(null);
+  const [sentimentScore, setSentimentScore] = useState(0);
+  const [sentimentLabel, setSentimentLabel] = useState("Neutral");
+  const [priceHistory, setPriceHistory] = useState<{ timestamp: string; price: number; volume: number }[]>([]);
+  const [sentimentHistory, setSentimentHistory] = useState<{ timestamp: string; score: number }[]>([]);
+  const [logs, setLogs] = useState<ApiSentimentLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const assetData = await fetchAsset(parseInt(id));
+        setAsset(assetData);
+
+        const [chart, summary, sentLogs] = await Promise.all([
+          fetchChartData(assetData.symbol, "30d"),
+          fetchSentimentSummary(assetData.symbol),
+          fetchSentimentLogs(assetData.id, 8),
+        ]);
+
+        if (summary) {
+          setSentimentScore(summary.current_score);
+          setSentimentLabel(summary.status);
+        }
+
+        if (chart) {
+          setPriceHistory(
+            chart.data.map((p: ApiChartPoint) => ({
+              timestamp: p.timestamp,
+              price: p.price,
+              volume: 0,
+            }))
+          );
+          setSentimentHistory(
+            chart.data
+              .filter((p: ApiChartPoint) => p.sentiment_score !== null)
+              .map((p: ApiChartPoint) => ({
+                timestamp: p.timestamp,
+                score: p.sentiment_score ?? 0,
+              }))
+          );
+        }
+
+        setLogs(sentLogs);
+      } catch {
+        // asset not found — leave null
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!asset) {
     return (
@@ -52,10 +116,6 @@ export default function CryptoDetailPage({
       </div>
     );
   }
-
-  const priceHistory = generatePriceHistory(asset.price);
-  const sentimentHistory = generateSentimentHistory();
-  const assetLogs = mockSentimentLogs.filter((l) => l.assetId === asset.id);
 
   return (
     <div className="space-y-6">
@@ -78,27 +138,16 @@ export default function CryptoDetailPage({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-text-primary">
-                {asset.name}
-              </h1>
-              <span className="text-sm text-text-secondary">
-                {asset.symbol}
-              </span>
+              <h1 className="text-xl font-bold text-text-primary">{asset.name}</h1>
+              <span className="text-sm text-text-secondary">{asset.symbol}</span>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <SentimentBadge score={asset.sentimentScore} size="sm" />
+              <SentimentBadge score={sentimentScore} size="sm" />
             </div>
           </div>
         </div>
         <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-light border border-black/5 hover:bg-black/5 transition-colors">
-          <Star
-            className={cn(
-              "h-5 w-5",
-              asset.isWatchlisted
-                ? "fill-warning text-warning"
-                : "text-text-secondary"
-            )}
-          />
+          <Star className="h-5 w-5 text-text-secondary" />
         </button>
       </div>
 
@@ -108,31 +157,37 @@ export default function CryptoDetailPage({
           <div>
             <p className="text-sm text-text-secondary mb-1">Current Price</p>
             <p className="text-3xl font-extrabold text-text-primary">
-              {formatCurrency(asset.price)}
+              {formatCurrency(asset.current_price)}
             </p>
           </div>
           <div
             className={cn(
               "flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold",
-              asset.change24h >= 0
+              asset.change_24h >= 0
                 ? "bg-pastel-green text-primary"
                 : "bg-pastel-red text-danger"
             )}
           >
-            {asset.change24h >= 0 ? (
+            {asset.change_24h >= 0 ? (
               <TrendingUp className="h-4 w-4" />
             ) : (
               <TrendingDown className="h-4 w-4" />
             )}
-            {asset.change24h >= 0 ? "+" : ""}
-            {asset.change24h.toFixed(2)}% (24h)
+            {asset.change_24h >= 0 ? "+" : ""}
+            {asset.change_24h.toFixed(2)}% (24h)
           </div>
         </div>
 
-        <PriceChart
-          data={priceHistory}
-          color={asset.change24h >= 0 ? "#10B981" : "#EF4444"}
-        />
+        {priceHistory.length > 0 ? (
+          <PriceChart
+            data={priceHistory}
+            color={asset.change_24h >= 0 ? "#10B981" : "#EF4444"}
+          />
+        ) : (
+          <div className="h-32 flex items-center justify-center text-text-secondary text-sm">
+            No price history available
+          </div>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -145,9 +200,10 @@ export default function CryptoDetailPage({
             </span>
           </div>
           <p className="text-xl font-extrabold text-text-primary">
-            {asset.sentimentScore > 0 ? "+" : ""}
-            {asset.sentimentScore.toFixed(2)}
+            {sentimentScore > 0 ? "+" : ""}
+            {sentimentScore.toFixed(2)}
           </p>
+          <p className="text-xs text-text-secondary mt-1">{sentimentLabel}</p>
         </div>
         <div className="rounded-2xl bg-pastel-blue border border-blue-500/10 p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -157,7 +213,7 @@ export default function CryptoDetailPage({
             </span>
           </div>
           <p className="text-xl font-extrabold text-text-primary">
-            {formatCompactNumber(asset.volume24h)}
+            {formatCompactNumber(asset.volume_24h)}
           </p>
         </div>
         <div className="rounded-2xl bg-pastel-yellow border border-yellow-500/10 p-4">
@@ -168,7 +224,7 @@ export default function CryptoDetailPage({
             </span>
           </div>
           <p className="text-xl font-extrabold text-text-primary">
-            {formatCompactNumber(asset.marketCap)}
+            {formatCompactNumber(asset.market_cap)}
           </p>
         </div>
         <div className="rounded-2xl bg-purple-50 border border-purple-500/10 p-4">
@@ -179,45 +235,41 @@ export default function CryptoDetailPage({
             </span>
           </div>
           <p className="text-xl font-extrabold text-text-primary">
-            {assetLogs.length > 0 ? assetLogs.length * 47 : 128}
+            {logs.length > 0 ? logs.length : "—"}
           </p>
         </div>
       </div>
 
       {/* Sentiment Analysis & News */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Sentiment History */}
         <div className="rounded-2xl bg-surface-light border border-black/5 p-6">
-          <h2 className="text-lg font-bold text-text-primary mb-1">
-            Sentiment History
-          </h2>
-          <p className="text-sm text-text-secondary mb-4">
-            FinBERT analysis over 30 days
-          </p>
-          <SentimentChart data={sentimentHistory} />
+          <h2 className="text-lg font-bold text-text-primary mb-1">Sentiment History</h2>
+          <p className="text-sm text-text-secondary mb-4">FinBERT analysis over 30 days</p>
+          {sentimentHistory.length > 0 ? (
+            <SentimentChart data={sentimentHistory} />
+          ) : (
+            <div className="h-32 flex items-center justify-center text-text-secondary text-sm">
+              No sentiment history available
+            </div>
+          )}
         </div>
 
-        {/* News Feed */}
         <div className="rounded-2xl bg-surface-light border border-black/5 overflow-hidden">
           <div className="px-6 py-4 border-b border-black/5">
-            <h2 className="text-lg font-bold text-text-primary">
-              Recent News & Analysis
-            </h2>
-            <p className="text-sm text-text-secondary">
-              AI-powered sentiment signals
-            </p>
+            <h2 className="text-lg font-bold text-text-primary">Recent News & Analysis</h2>
+            <p className="text-sm text-text-secondary">AI-powered sentiment signals</p>
           </div>
           <div className="divide-y divide-black/5">
-            {(assetLogs.length > 0 ? assetLogs : mockSentimentLogs.slice(0, 4)).map(
-              (log) => {
+            {logs.length === 0 ? (
+              <div className="px-6 py-8 text-center text-sm text-text-secondary">
+                No news analysis available yet
+              </div>
+            ) : (
+              logs.map((log) => {
                 const isPositive = log.score >= 0.3;
                 const isNegative = log.score <= -0.3;
-
                 return (
-                  <div
-                    key={log.id}
-                    className="flex items-start gap-4 px-6 py-4"
-                  >
+                  <div key={log.id} className="flex items-start gap-4 px-6 py-4">
                     <div
                       className={cn(
                         "mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
@@ -248,7 +300,7 @@ export default function CryptoDetailPage({
                       </p>
                       <p className="text-xs text-text-secondary mt-1">
                         {log.source} •{" "}
-                        {new Date(log.timestamp).toLocaleDateString("en-US", {
+                        {new Date(log.analyzed_at).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           hour: "2-digit",
@@ -258,7 +310,7 @@ export default function CryptoDetailPage({
                     </div>
                   </div>
                 );
-              }
+              })
             )}
           </div>
         </div>
