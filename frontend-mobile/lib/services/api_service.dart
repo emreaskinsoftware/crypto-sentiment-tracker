@@ -1,10 +1,23 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:http/http.dart' as http;
 import '../models/crypto_asset.dart';
 
-// Android emülatör: 10.0.2.2 | iOS simülatör / web: localhost
-const String _baseUrl = 'http://10.0.2.2:8000/api/v1';
+// Platform bazlı API URL seçimi
+String get _baseUrl {
+  if (kIsWeb) return 'http://localhost:8000/api/v1';
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+      return 'http://10.0.2.2:8000/api/v1'; // Android emülatör
+    case TargetPlatform.windows:
+    case TargetPlatform.macOS:
+    case TargetPlatform.linux:
+      return 'http://localhost:8000/api/v1';
+    default:
+      return 'http://localhost:8000/api/v1';
+  }
+}
 
 class ApiService {
   static const _headers = {'Content-Type': 'application/json'};

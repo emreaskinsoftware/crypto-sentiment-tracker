@@ -20,16 +20,19 @@ from app.models.price_history import PriceHistory
 logger = logging.getLogger(__name__)
 
 # İzlenen kripto semboller (Binance formatı)
-TRACKED_SYMBOLS: list[str] = ["BTC", "ETH", "BNB", "SOL", "XRP"]
+TRACKED_SYMBOLS: list[str] = ["BTC", "ETH", "SOL", "ADA", "XRP", "DOGE", "AVAX", "DOT"]
 BINANCE_BASE_URL = "https://api.binance.com/api/v3"
 
 # Binance sembol eşleştirmesi: uygulama sembolü → Binance pair
 BINANCE_PAIRS: dict[str, str] = {
-    "BTC": "BTCUSDT",
-    "ETH": "ETHUSDT",
-    "BNB": "BNBUSDT",
-    "SOL": "SOLUSDT",
-    "XRP": "XRPUSDT",
+    "BTC":  "BTCUSDT",
+    "ETH":  "ETHUSDT",
+    "SOL":  "SOLUSDT",
+    "ADA":  "ADAUSDT",
+    "XRP":  "XRPUSDT",
+    "DOGE": "DOGEUSDT",
+    "AVAX": "AVAXUSDT",
+    "DOT":  "DOTUSDT",
 }
 
 
