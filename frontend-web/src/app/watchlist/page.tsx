@@ -2,16 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2, LogIn } from "lucide-react";
+import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2, LogIn, X, Search } from "lucide-react";
 import { cn, formatCurrency, formatCompactNumber } from "@/lib/utils";
 import { SentimentBadge } from "@/components/ui/SentimentBadge";
 import { MiniChart } from "@/components/ui/MiniChart";
 import {
-  fetchWatchlist,
-  generateSparkline,
-  removeFromWatchlist,
-  getToken,
-  type ApiWatchlistItem,
+  fetchWatchlist, fetchAssets, addToWatchlist,
+  generateSparkline, removeFromWatchlist, getToken,
+  type ApiWatchlistItem, type ApiAsset,
 } from "@/lib/api";
 
 const symbolColors: Record<string, string> = {
@@ -20,27 +18,127 @@ const symbolColors: Record<string, string> = {
   AVAX: "bg-red-500", DOT: "bg-pink-500",
 };
 
+function AddAssetModal({ allAssets, watchlist, onClose, onAdded }: {
+  allAssets: ApiAsset[];
+  watchlist: ApiWatchlistItem[];
+  onClose: () => void;
+  onAdded: (item: ApiWatchlistItem) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const watchlistedSymbols = new Set(watchlist.map((w) => w.asset.symbol));
+  const filtered = allAssets.filter(
+    (a) =>
+      !watchlistedSymbols.has(a.symbol) &&
+      (a.name.toLowerCase().includes(query.toLowerCase()) ||
+        a.symbol.toLowerCase().includes(query.toLowerCase()))
+  );
+
+  const handleAdd = async (asset: ApiAsset) => {
+    setAdding(asset.symbol);
+    setError("");
+    const result = await addToWatchlist(asset.symbol);
+    if (result) {
+      onAdded(result);
+    } else {
+      setError(`${asset.symbol} eklenemedi.`);
+    }
+    setAdding(null);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-text-primary">Varlık Ekle</h2>
+          <button onClick={onClose} className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-black/5">
+            <X className="h-4 w-4 text-text-secondary" />
+          </button>
+        </div>
+
+        {/* Arama */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
+          <input
+            autoFocus
+            type="text"
+            placeholder="BTC, Ethereum..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-bg-light text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+
+        {error && <p className="text-xs text-danger mb-3">{error}</p>}
+
+        <div className="space-y-2 max-h-72 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-text-secondary text-center py-6">
+              {watchlistedSymbols.size === allAssets.length ? "Tüm varlıklar watchlist'te." : "Sonuç bulunamadı."}
+            </p>
+          ) : (
+            filtered.map((asset) => (
+              <div key={asset.symbol} className="flex items-center justify-between rounded-xl p-3 hover:bg-bg-light transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-white text-xs font-bold",
+                    symbolColors[asset.symbol] || "bg-slate-500")}>
+                    {asset.symbol}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-text-primary">{asset.name}</p>
+                    <p className="text-xs text-text-secondary">{formatCurrency(asset.current_price)}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleAdd(asset)}
+                  disabled={adding === asset.symbol}
+                  className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary-dark transition-colors disabled:opacity-60"
+                >
+                  {adding === asset.symbol
+                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                    : <Plus className="h-3 w-3" />}
+                  Ekle
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WatchlistPage() {
   const [watchlist, setWatchlist] = useState<ApiWatchlistItem[]>([]);
+  const [allAssets, setAllAssets] = useState<ApiAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const token = getToken();
     setIsLoggedIn(!!token);
-    if (token) {
-      fetchWatchlist().then((data) => {
-        setWatchlist(data);
-        setLoading(false);
-      });
-    } else {
+    const load = async () => {
+      const [wl, assets] = await Promise.all([
+        token ? fetchWatchlist() : Promise.resolve([]),
+        fetchAssets(),
+      ]);
+      setWatchlist(wl);
+      setAllAssets(assets);
       setLoading(false);
-    }
+    };
+    load();
   }, []);
 
   const handleRemove = async (symbol: string) => {
     await removeFromWatchlist(symbol);
     setWatchlist((prev) => prev.filter((w) => w.asset.symbol !== symbol));
+  };
+
+  const handleAdded = (item: ApiWatchlistItem) => {
+    setWatchlist((prev) => [...prev, item]);
   };
 
   if (loading) {
@@ -82,13 +180,25 @@ export default function WatchlistPage() {
       : 0;
 
   return (
+    <>
+      {showModal && (
+        <AddAssetModal
+          allAssets={allAssets}
+          watchlist={watchlist}
+          onClose={() => setShowModal(false)}
+          onAdded={(item) => { handleAdded(item); setShowModal(false); }}
+        />
+      )}
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Watchlist</h1>
           <p className="text-sm text-text-secondary mt-1">Track your favorite cryptocurrencies</p>
         </div>
-        <button className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors">
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors"
+        >
           <Plus className="h-4 w-4" />
           Add Asset
         </button>
@@ -213,5 +323,6 @@ export default function WatchlistPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
