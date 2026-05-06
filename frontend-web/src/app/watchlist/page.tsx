@@ -7,7 +7,7 @@ import { cn, formatCurrency, formatCompactNumber } from "@/lib/utils";
 import { SentimentBadge } from "@/components/ui/SentimentBadge";
 import { MiniChart } from "@/components/ui/MiniChart";
 import {
-  fetchWatchlist, fetchAssets, addToWatchlist,
+  fetchWatchlist, fetchAssets, addToWatchlist, createAlert,
   generateSparkline, removeFromWatchlist, getToken,
   type ApiWatchlistItem, type ApiAsset,
 } from "@/lib/api";
@@ -17,6 +17,70 @@ const symbolColors: Record<string, string> = {
   ADA: "bg-blue-500", XRP: "bg-slate-700", DOGE: "bg-yellow-500",
   AVAX: "bg-red-500", DOT: "bg-pink-500",
 };
+
+function QuickAlertModal({ symbol, onClose }: { symbol: string; onClose: () => void }) {
+  const [condition, setCondition] = useState("sentiment_below");
+  const [threshold, setThreshold] = useState("-0.5");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
+  const isSentiment = condition.startsWith("sentiment");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const t = parseFloat(threshold);
+    if (isNaN(t)) { setError("Geçerli bir değer girin."); return; }
+    setLoading(true);
+    const result = await createAlert({ asset_symbol: symbol, condition, threshold: t });
+    setLoading(false);
+    if (result) setDone(true);
+    else setError("Alarm oluşturulamadı.");
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-text-primary">{symbol} Alarmı</h2>
+          <button onClick={onClose}><X className="h-4 w-4 text-text-secondary" /></button>
+        </div>
+        {done ? (
+          <div className="text-center py-4">
+            <p className="text-primary font-bold text-sm">✓ Alarm oluşturuldu!</p>
+            <button onClick={onClose} className="mt-3 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white">Kapat</button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-text-secondary block mb-1">Koşul</label>
+              <select value={condition} onChange={(e) => setCondition(e.target.value)}
+                className="w-full rounded-xl bg-bg-light py-2.5 px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 border-none">
+                <option value="sentiment_below">Sentiment altına düşerse</option>
+                <option value="sentiment_above">Sentiment üzerine çıkarsa</option>
+                <option value="price_below">Fiyat altına düşerse</option>
+                <option value="price_above">Fiyat üzerine çıkarsa</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-text-secondary block mb-1">
+                Eşik {isSentiment ? "(-1.0 / +1.0)" : "($)"}
+              </label>
+              <input type="number" step={isSentiment ? "0.01" : "1"} value={threshold}
+                onChange={(e) => setThreshold(e.target.value)}
+                className="w-full rounded-xl bg-bg-light py-2.5 px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 border-none" />
+            </div>
+            {error && <p className="text-xs text-danger">{error}</p>}
+            <button type="submit" disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-white disabled:opacity-60">
+              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
+              Alarm Kur
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function AddAssetModal({ allAssets, watchlist, onClose, onAdded }: {
   allAssets: ApiAsset[];
@@ -116,6 +180,7 @@ export default function WatchlistPage() {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [alertSymbol, setAlertSymbol] = useState<string | null>(null);
 
   useEffect(() => {
     const token = getToken();
@@ -181,6 +246,7 @@ export default function WatchlistPage() {
 
   return (
     <>
+      {alertSymbol && <QuickAlertModal symbol={alertSymbol} onClose={() => setAlertSymbol(null)} />}
       {showModal && (
         <AddAssetModal
           allAssets={allAssets}
@@ -269,7 +335,11 @@ export default function WatchlistPage() {
                     </div>
                   </Link>
                   <div className="flex gap-1">
-                    <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-pastel-blue transition-colors">
+                    <button
+                      onClick={() => setAlertSymbol(asset.symbol)}
+                      title={`${asset.symbol} için alarm kur`}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-pastel-blue transition-colors"
+                    >
                       <Bell className="h-4 w-4 text-text-secondary" />
                     </button>
                     <button
