@@ -40,6 +40,58 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     setState(() => _watchlist.removeWhere((a) => a.symbol == symbol));
   }
 
+  void _showAddAssetSheet() async {
+    final rawAssets = await ApiService.fetchRawAssets();
+    final watchlistedSymbols = _watchlist.map((a) => a.symbol).toSet();
+    final available = rawAssets.where((a) => !watchlistedSymbols.contains(a['symbol'])).toList();
+
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false, initialChildSize: 0.6, maxChildSize: 0.9,
+        builder: (ctx, scroll) => Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 16),
+            const Text('Varlık Ekle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+            const SizedBox(height: 12),
+            if (available.isEmpty)
+              const Padding(padding: EdgeInsets.all(20), child: Text('Tüm varlıklar eklenmiş.'))
+            else
+              Expanded(child: ListView.builder(
+                controller: scroll,
+                itemCount: available.length,
+                itemBuilder: (_, i) {
+                  final a = available[i];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      child: Text(a['symbol'] as String, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                    ),
+                    title: Text(a['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text('\$${(a['current_price'] as num).toStringAsFixed(2)}'),
+                    trailing: ElevatedButton(
+                      onPressed: () async {
+                        final ok = await ApiService.addToWatchlist(_token!, a['symbol'] as String);
+                        if (ok) { Navigator.pop(ctx); _load(); }
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                      child: const Text('Ekle', style: TextStyle(fontSize: 13)),
+                    ),
+                  );
+                },
+              )),
+          ]),
+        ),
+      ),
+    );
+  }
+
   void _showLoginSheet() {
     final emailCtrl = TextEditingController();
     final passCtrl = TextEditingController();
@@ -130,7 +182,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary)),
                   GestureDetector(
-                    onTap: _token == null ? _showLoginSheet : null,
+                    onTap: _token == null ? _showLoginSheet : _showAddAssetSheet,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(

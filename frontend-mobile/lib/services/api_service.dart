@@ -133,6 +133,19 @@ class ApiService {
     return null;
   }
 
+  static Future<bool> register(String email, String password, String fullName) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$_baseUrl/auth/register'),
+        headers: _headers,
+        body: json.encode({'email': email, 'password': password, 'full_name': fullName}),
+      );
+      return res.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // ── Watchlist (auth required) ─────────────────────────────────────────────
 
   static Future<List<CryptoAsset>> fetchWatchlist(String token) async {
@@ -195,6 +208,81 @@ class ApiService {
         headers: {'Authorization': 'Bearer $token'},
       );
     } catch (_) {}
+  }
+
+  // ── Alerts (auth required) ───────────────────────────────────────────────
+
+  static Future<List<Map<String, dynamic>>> fetchAlerts(String token) async {
+    try {
+      final res = await http.get(Uri.parse('$_baseUrl/alerts/'),
+          headers: {'Authorization': 'Bearer $token'});
+      if (res.statusCode != 200) return [];
+      return List<Map<String, dynamic>>.from(json.decode(res.body));
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<bool> createAlert(String token, String symbol, String condition, double threshold) async {
+    try {
+      final res = await http.post(Uri.parse('$_baseUrl/alerts/'),
+          headers: {'Authorization': 'Bearer $token', ..._headers},
+          body: json.encode({'asset_symbol': symbol, 'condition': condition, 'threshold': threshold}));
+      return res.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> patchAlert(String token, int alertId, Map<String, dynamic> payload) async {
+    try {
+      await http.patch(Uri.parse('$_baseUrl/alerts/$alertId'),
+          headers: {'Authorization': 'Bearer $token', ..._headers},
+          body: json.encode(payload));
+    } catch (_) {}
+  }
+
+  static Future<void> deleteAlert(String token, int alertId) async {
+    try {
+      await http.delete(Uri.parse('$_baseUrl/alerts/$alertId'),
+          headers: {'Authorization': 'Bearer $token'});
+    } catch (_) {}
+  }
+
+  // ── Raw asset list (id+symbol+name+price için) ───────────────────────────
+
+  static Future<List<Map<String, dynamic>>> fetchRawAssets() async {
+    try {
+      final res = await http.get(Uri.parse('$_baseUrl/assets/'));
+      if (res.statusCode != 200) return [];
+      return List<Map<String, dynamic>>.from(json.decode(res.body));
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // ── Sentiment summary ────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>?> fetchSentimentSummary(String symbol) async {
+    try {
+      final res = await http.get(Uri.parse('$_baseUrl/assets/$symbol/sentiment-summary'));
+      if (res.statusCode != 200) return null;
+      return json.decode(res.body) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ── Chart data ───────────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>?> fetchChartData(String symbol, {String timeframe = '24h'}) async {
+    try {
+      final res = await http.get(Uri.parse('$_baseUrl/assets/$symbol/chart-data?timeframe=$timeframe'));
+      if (res.statusCode != 200) return null;
+      return json.decode(res.body) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

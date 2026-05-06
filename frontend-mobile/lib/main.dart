@@ -3,19 +3,16 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/radar_screen.dart';
 import 'screens/watchlist_screen.dart';
+import 'screens/alerts_screen.dart';
 import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Firebase başlat (google-services.json gerektirir)
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    // Firebase yapılandırılmamışsa sessizce devam et
     debugPrint('[Firebase] Başlatılamadı: $e');
   }
-
   runApp(const MyApp());
 }
 
@@ -46,6 +43,7 @@ class _MainShellState extends State<MainShell> {
   final _screens = const [
     RadarScreen(),
     WatchlistScreen(),
+    AlertsScreen(),
     SettingsScreen(),
   ];
 
@@ -65,22 +63,12 @@ class _MainShellState extends State<MainShell> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.radar),
-              activeIcon: Icon(Icons.radar),
-              label: 'Radar',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.star_border),
-              activeIcon: Icon(Icons.star),
-              label: 'Watchlist',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.radar), label: 'Radar'),
+            BottomNavigationBarItem(icon: Icon(Icons.star_border), activeIcon: Icon(Icons.star), label: 'Watchlist'),
+            BottomNavigationBarItem(icon: Icon(Icons.notifications_outlined), activeIcon: Icon(Icons.notifications), label: 'Alerts'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), activeIcon: Icon(Icons.settings), label: 'Settings'),
           ],
         ),
       ),

@@ -3,7 +3,7 @@ import '../models/crypto_asset.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/crypto_card.dart';
-import '../widgets/sentiment_badge.dart';
+import 'crypto_detail_screen.dart';
 
 class RadarScreen extends StatefulWidget {
   const RadarScreen({super.key});
@@ -25,7 +25,10 @@ class _RadarScreenState extends State<RadarScreen> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final results = await Future.wait([
         ApiService.fetchAssetsWithSentiment(),
@@ -37,7 +40,10 @@ class _RadarScreenState extends State<RadarScreen> {
         _loading = false;
       });
     } catch (e) {
-      setState(() { _error = 'API bağlantısı kurulamadı'; _loading = false; });
+      setState(() {
+        _error = 'API bağlantısı kurulamadı';
+        _loading = false;
+      });
     }
   }
 
@@ -55,9 +61,11 @@ class _RadarScreenState extends State<RadarScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wifi_off, size: 48, color: AppColors.textSecondary),
+              const Icon(Icons.wifi_off,
+                  size: 48, color: AppColors.textSecondary),
               const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: AppColors.textSecondary)),
+              Text(_error!,
+                  style: const TextStyle(color: AppColors.textSecondary)),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _load,
@@ -72,7 +80,8 @@ class _RadarScreenState extends State<RadarScreen> {
 
     final avgSentiment = _assets.isEmpty
         ? 0.0
-        : _assets.fold<double>(0, (s, a) => s + a.sentimentScore) / _assets.length;
+        : _assets.fold<double>(0, (s, a) => s + a.sentimentScore) /
+            _assets.length;
     final positiveCount = _assets.where((a) => a.sentimentScore >= 0.3).length;
 
     return Scaffold(
@@ -118,7 +127,8 @@ class _RadarScreenState extends State<RadarScreen> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(Icons.refresh,
@@ -159,7 +169,12 @@ class _RadarScreenState extends State<RadarScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, i) => CryptoCard(asset: _assets[i]),
+                    (context, i) => CryptoCard(
+                      asset: _assets[i],
+                      onTap: () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => CryptoDetailScreen(asset: _assets[i]),
+                      )),
+                    ),
                     childCount: _assets.length,
                   ),
                 ),
@@ -205,7 +220,8 @@ class _StatChip extends StatelessWidget {
   final String value;
   final Color color;
 
-  const _StatChip({required this.label, required this.value, required this.color});
+  const _StatChip(
+      {required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -264,11 +280,13 @@ class _SentimentLogTile extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+                color: bgColor, borderRadius: BorderRadius.circular(10)),
             alignment: Alignment.center,
             child: Text(
               '${log.score > 0 ? '+' : ''}${log.score.toStringAsFixed(1)}',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: scoreColor),
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w800, color: scoreColor),
             ),
           ),
           const SizedBox(width: 12),
@@ -286,7 +304,8 @@ class _SentimentLogTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${log.source} · ${_formatDate(log.timestamp)}',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  style:
+                      TextStyle(fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -297,7 +316,20 @@ class _SentimentLogTile extends StatelessWidget {
   }
 
   String _formatDate(DateTime dt) {
-    final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${months[dt.month - 1]} ${dt.day}';
   }
 }
