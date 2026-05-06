@@ -9,6 +9,7 @@ from app.models.asset import Asset
 from app.models.sentiment_log import SentimentLog
 from app.models.user import User
 from app.services.email_service import send_alert_email
+from app.services.fcm_service import send_alert_push
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,16 @@ def check_alerts(db: Session) -> dict:
         )
 
         if success:
+            # FCM push bildirimi (token varsa)
+            if user.fcm_token:
+                send_alert_push(
+                    fcm_token=user.fcm_token,
+                    asset_symbol=asset.symbol,
+                    condition_type=alert.condition_type,
+                    threshold=alert.threshold,
+                    current_value=current_value if current_value is not None else 0.0,
+                )
+
             alert.last_triggered_at = now
             db.commit()
             stats["triggered"] += 1

@@ -1,10 +1,21 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/radar_screen.dart';
 import 'screens/watchlist_screen.dart';
 import 'screens/settings_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Firebase başlat (google-services.json gerektirir)
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    // Firebase yapılandırılmamışsa sessizce devam et
+    debugPrint('[Firebase] Başlatılamadı: $e');
+  }
+
   runApp(const MyApp());
 }
 

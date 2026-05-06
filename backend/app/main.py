@@ -7,6 +7,7 @@ from app.api.assets import router as assets_router
 from app.api.alerts import router as alerts_router
 from app.api.watchlist import router as watchlist_router
 from app.api.dashboard import router as dashboard_router
+from app.api.devices import router as devices_router
 import app.models  # noqa: F401 — ensures all models are registered before create_all
 
 # Create all tables on startup
@@ -35,6 +36,7 @@ app.include_router(assets_router, prefix="/api/v1")
 app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(watchlist_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
+app.include_router(devices_router, prefix="/api/v1")
 
 
 @app.get("/")

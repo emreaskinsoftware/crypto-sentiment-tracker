@@ -160,6 +160,30 @@ class ApiService {
     } catch (_) {}
   }
 
+  // ── FCM Token (auth required) ─────────────────────────────────────────────
+
+  static Future<bool> registerFcmToken(String token, String fcmToken) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$_baseUrl/devices/fcm-token'),
+        headers: {'Authorization': 'Bearer $token', ..._headers},
+        body: json.encode({'fcm_token': fcmToken}),
+      );
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> unregisterFcmToken(String token) async {
+    try {
+      await http.delete(
+        Uri.parse('$_baseUrl/devices/fcm-token'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+    } catch (_) {}
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   static CryptoAsset _mapAsset(Map<String, dynamic> e) {

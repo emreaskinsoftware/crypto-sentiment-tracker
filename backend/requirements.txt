@@ -19,3 +19,5 @@ sentencepiece
 # Hafta 7 — Celery + Redis Cron Job
 celery[redis]
 redis
+# Hafta 11 — Firebase Cloud Messaging
+firebase-admin

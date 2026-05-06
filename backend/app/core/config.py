@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM_EMAIL: str = ""
     SMTP_ENABLED: bool = False
+    # Hafta 11 — Firebase Cloud Messaging
+    FCM_ENABLED: bool = False
+    FCM_CREDENTIALS_JSON: str = ""
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

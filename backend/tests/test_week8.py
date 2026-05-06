@@ -30,16 +30,24 @@ client = TestClient(app)
 
 
 def setup_module(module):
-    """Testler baslamadan once override'i etkinlestir ve tabloyu temizle."""
-    from app.models.watchlist import Watchlist
-    from app.models.alert import Alert
-    from app.models.user import User
+    """Testler baslamadan once override'i etkinlestir, semayı yenile ve seed ekle."""
     app.dependency_overrides[get_db] = _override_get_db
+    Base.metadata.drop_all(bind=_engine)
+    Base.metadata.create_all(bind=_engine)
+    _seed_assets()
+
+
+def _seed_assets():
+    from app.models.asset import Asset
     db = _SessionLocal()
     try:
-        db.query(Watchlist).delete()
-        db.query(Alert).delete()
-        db.query(User).delete()
+        for sym, name, price, change in [
+            ("BTC", "Bitcoin", 67000.0, 2.5),
+            ("ETH", "Ethereum", 3400.0, 1.2),
+        ]:
+            if not db.query(Asset).filter(Asset.symbol == sym).first():
+                db.add(Asset(symbol=sym, name=name, current_price=price,
+                             market_cap=1e12, volume_24h=1e9, change_24h=change))
         db.commit()
     finally:
         db.close()
