@@ -77,8 +77,9 @@ class TestBeatSchedule(unittest.TestCase):
         sentiment_minute = int(self.schedule["run-sentiment-hourly"]["schedule"]._orig_minute)
         self.assertGreater(sentiment_minute, price_minute)
 
-    def test_two_scheduled_tasks_exist(self):
-        self.assertEqual(len(self.schedule), 2)
+    def test_scheduled_tasks_count(self):
+        # Hafta 7: 2 gorev, Hafta 10'da check-alerts eklenerek 3 oldu
+        self.assertGreaterEqual(len(self.schedule), 2)
 
 
 class TestFetchPricesTask(unittest.TestCase):

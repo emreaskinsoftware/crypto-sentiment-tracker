@@ -25,4 +25,9 @@ celery_app.conf.beat_schedule = {
         "task": "app.worker.tasks.run_sentiment_task",
         "schedule": crontab(minute=5),
     },
+    # Her saat 10. dakikada (XX:10) alarm koşullarını tara — sentiment'tan sonra
+    "check-alerts-hourly": {
+        "task": "app.worker.tasks.check_alerts_task",
+        "schedule": crontab(minute=10),
+    },
 }

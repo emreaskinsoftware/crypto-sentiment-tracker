@@ -1,6 +1,7 @@
 import logging
 
 from app.core.database import SessionLocal
+from app.services.alert_checker import run_alert_checker
 from app.services.price_fetcher import run_price_pipeline
 from app.services.sentiment_pipeline import run_sentiment_pipeline
 from app.worker.celery_app import celery_app
@@ -25,6 +26,19 @@ def run_sentiment_task() -> dict:
     try:
         stats = run_sentiment_pipeline(db)
         logger.info("run_sentiment_task tamamlandi: %s", stats)
+        return stats
+    finally:
+        db.close()
+
+
+@celery_app.task(name="app.worker.tasks.check_alerts_task")
+def check_alerts_task() -> dict:
+    """Her saat 10. dakikada aktif alarmları tarar ve e-posta gönderir."""
+    logger.info("check_alerts_task basliyor")
+    db = SessionLocal()
+    try:
+        stats = run_alert_checker(db)
+        logger.info("check_alerts_task tamamlandi: %s", stats)
         return stats
     finally:
         db.close()
