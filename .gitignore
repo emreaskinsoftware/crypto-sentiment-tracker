@@ -2,6 +2,7 @@ node_modules/
 venv/
 .dart_tool/
 .env
+.env.local
 __pycache__/
 *.pyc
 .next/
@@ -10,3 +11,12 @@ build/
 ~$*
 *.zip
 *.db
+
+# Firebase — asla commit etme, Firebase Console'dan indir
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
+# Servis hesabı anahtarları
+*service-account*.json
+*credentials*.json
