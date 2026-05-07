@@ -113,7 +113,7 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary)),
                 Text(asset.symbol,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 12, color: AppColors.textSecondary)),
               ],
             ),
@@ -139,7 +139,7 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Current Price',
+                        const Text('Current Price',
                             style: TextStyle(
                                 fontSize: 12, color: AppColors.textSecondary)),
                         const SizedBox(height: 4),
@@ -292,7 +292,7 @@ class _StatCard extends StatelessWidget {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(label,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 10,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w600)),
@@ -301,7 +301,8 @@ class _StatCard extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15, fontWeight: FontWeight.w800, color: color)),
           Text(sub,
-              style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+              style: const TextStyle(
+                  fontSize: 10, color: AppColors.textSecondary)),
         ]),
       );
 }
@@ -359,7 +360,8 @@ class _NewsCard extends StatelessWidget {
                   color: AppColors.textPrimary)),
           const SizedBox(height: 4),
           Text('${log.source} · ${_fmt(log.timestamp)}',
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              style: const TextStyle(
+                  fontSize: 11, color: AppColors.textSecondary)),
         ])),
       ]),
     );

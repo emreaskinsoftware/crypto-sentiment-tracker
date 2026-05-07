@@ -3,6 +3,7 @@ import '../models/crypto_asset.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/auth_form.dart';
 import '../widgets/crypto_card.dart';
 
 class WatchlistScreen extends StatefulWidget {
@@ -131,76 +132,10 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   }
 
   void _showLoginSheet() {
-    final emailCtrl = TextEditingController();
-    final passCtrl = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Log In',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailCtrl,
-              decoration: const InputDecoration(
-                  labelText: 'Email', border: OutlineInputBorder()),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: passCtrl,
-              decoration: const InputDecoration(
-                  labelText: 'Password', border: OutlineInputBorder()),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () async {
-                  final token =
-                      await ApiService.login(emailCtrl.text, passCtrl.text);
-                  if (token != null) {
-                    _auth.setAuth(token, emailCtrl.text);
-                    if (ctx.mounted) Navigator.pop(ctx);
-                    _load();
-                  } else {
-                    if (ctx.mounted) {
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(content: Text('Login failed')));
-                    }
-                  }
-                },
-                child: const Text('Log In',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    showAuthSheet(context, onSuccess: () {
+      setState(() {});
+      _load();
+    });
   }
 
   @override
