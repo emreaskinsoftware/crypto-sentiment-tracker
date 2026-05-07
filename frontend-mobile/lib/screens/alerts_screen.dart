@@ -19,7 +19,18 @@ class _AlertsScreenState extends State<AlertsScreen> {
   @override
   void initState() {
     super.initState();
+    _auth.addListener(_onAuthChanged);
     _load();
+  }
+
+  @override
+  void dispose() {
+    _auth.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    _load(); // Giriş/çıkış olunca alarm listesini yenile
   }
 
   Future<void> _load() async {

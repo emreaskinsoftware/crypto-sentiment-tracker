@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 /// Uygulama genelinde paylaşılan kimlik doğrulama durumu.
-/// Tüm ekranlar bu singleton'ı kullanır — bir yerden giriş yapınca
-/// diğer ekranlar da anında auth olmuş görünür.
-class AuthService {
+/// ChangeNotifier ile: bir yerden giriş yapınca tüm dinleyen
+/// widget'lar otomatik olarak yeniden çizilir.
+class AuthService extends ChangeNotifier {
   AuthService._();
   static final AuthService instance = AuthService._();
 
@@ -15,10 +17,12 @@ class AuthService {
   void setAuth(String token, String email) {
     _token = token;
     _email = email;
+    notifyListeners(); // Tüm dinleyen widget'ları yeniden çiz
   }
 
   void logout() {
     _token = null;
     _email = null;
+    notifyListeners();
   }
 }
