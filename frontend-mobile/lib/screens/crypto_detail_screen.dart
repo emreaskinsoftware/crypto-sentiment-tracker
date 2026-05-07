@@ -3,7 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import '../models/crypto_asset.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/sentiment_badge.dart';
 
 class CryptoDetailScreen extends StatefulWidget {
   final CryptoAsset asset;
@@ -48,8 +47,12 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
       }
     }
 
-    double minY = spots.isEmpty ? 0 : spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
-    double maxY = spots.isEmpty ? 0 : spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    double minY = spots.isEmpty
+        ? 0
+        : spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+    double maxY = spots.isEmpty
+        ? 0
+        : spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
     final padding = (maxY - minY) * 0.1;
 
     setState(() {
@@ -63,8 +66,9 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
     });
   }
 
-  String _formatPrice(double price) =>
-      price >= 1 ? '\$${price.toStringAsFixed(2)}' : '\$${price.toStringAsFixed(4)}';
+  String _formatPrice(double price) => price >= 1
+      ? '\$${price.toStringAsFixed(2)}'
+      : '\$${price.toStringAsFixed(4)}';
 
   @override
   Widget build(BuildContext context) {
@@ -72,29 +76,45 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
     final isUp = asset.change24h >= 0;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.bgLight,
       appBar: AppBar(
         backgroundColor: AppColors.surfaceLight,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           children: [
             Container(
-              width: 32, height: 32,
-              decoration: BoxDecoration(color: asset.symbolColor, borderRadius: BorderRadius.circular(8)),
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                  color: asset.symbolColor,
+                  borderRadius: BorderRadius.circular(8)),
               alignment: Alignment.center,
-              child: Text(asset.symbol.length > 3 ? asset.symbol.substring(0, 3) : asset.symbol,
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+              child: Text(
+                  asset.symbol.length > 3
+                      ? asset.symbol.substring(0, 3)
+                      : asset.symbol,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800)),
             ),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(asset.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                Text(asset.symbol, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(asset.name,
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary)),
+                Text(asset.symbol,
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
               ],
             ),
           ],
@@ -113,28 +133,41 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceLight,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                      border: Border.all(
+                          color: Colors.black.withValues(alpha: 0.05)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Current Price', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        Text('Current Price',
+                            style: TextStyle(
+                                fontSize: 12, color: AppColors.textSecondary)),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             Text(_formatPrice(asset.price),
-                                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                                style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.textPrimary)),
                             const SizedBox(width: 10),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isUp ? AppColors.pastelGreen : AppColors.pastelRed,
+                                color: isUp
+                                    ? AppColors.pastelGreen
+                                    : AppColors.pastelRed,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 '${isUp ? '+' : ''}${asset.change24h.toStringAsFixed(2)}%',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-                                    color: isUp ? AppColors.primary : AppColors.danger),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: isUp
+                                        ? AppColors.primary
+                                        : AppColors.danger),
                               ),
                             ),
                           ],
@@ -154,21 +187,31 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                                 LineChartBarData(
                                   spots: _priceSpots,
                                   isCurved: true,
-                                  color: isUp ? AppColors.primary : AppColors.danger,
+                                  color: isUp
+                                      ? AppColors.primary
+                                      : AppColors.danger,
                                   barWidth: 2,
                                   dotData: const FlDotData(show: false),
                                   belowBarData: BarAreaData(
                                     show: true,
-                                    color: (isUp ? AppColors.primary : AppColors.danger).withValues(alpha: 0.1),
+                                    color: (isUp
+                                            ? AppColors.primary
+                                            : AppColors.danger)
+                                        .withValues(alpha: 0.1),
                                   ),
                                 ),
                               ],
                             )),
                           )
                         else
-                          const SizedBox(height: 80, child: Center(
-                            child: Text('Grafik verisi yükleniyor...', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                          )),
+                          const SizedBox(
+                              height: 80,
+                              child: Center(
+                                child: Text('Grafik verisi yükleniyor...',
+                                    style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12)),
+                              )),
                       ],
                     ),
                   ),
@@ -177,12 +220,31 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                   // İstatistikler
                   Row(
                     children: [
-                      Expanded(child: _StatCard(label: 'Sentiment', value: '${_sentimentScore >= 0 ? '+' : ''}${_sentimentScore.toStringAsFixed(2)}',
-                          sub: _sentimentLabel, color: _sentimentScore >= 0.3 ? AppColors.primary : _sentimentScore <= -0.3 ? AppColors.danger : AppColors.warning)),
+                      Expanded(
+                          child: _StatCard(
+                              label: 'Sentiment',
+                              value:
+                                  '${_sentimentScore >= 0 ? '+' : ''}${_sentimentScore.toStringAsFixed(2)}',
+                              sub: _sentimentLabel,
+                              color: _sentimentScore >= 0.3
+                                  ? AppColors.primary
+                                  : _sentimentScore <= -0.3
+                                      ? AppColors.danger
+                                      : AppColors.warning)),
                       const SizedBox(width: 10),
-                      Expanded(child: _StatCard(label: 'Volume 24h', value: _compactNumber(asset.volume24h), sub: 'USD', color: const Color(0xFF3B82F6))),
+                      Expanded(
+                          child: _StatCard(
+                              label: 'Volume 24h',
+                              value: _compactNumber(asset.volume24h),
+                              sub: 'USD',
+                              color: const Color(0xFF3B82F6))),
                       const SizedBox(width: 10),
-                      Expanded(child: _StatCard(label: 'Market Cap', value: _compactNumber(asset.marketCap), sub: 'USD', color: AppColors.warning)),
+                      Expanded(
+                          child: _StatCard(
+                              label: 'Market Cap',
+                              value: _compactNumber(asset.marketCap),
+                              sub: 'USD',
+                              color: AppColors.warning)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -190,7 +252,10 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                   // Haberler
                   if (_logs.isNotEmpty) ...[
                     const Text('Recent News & Analysis',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary)),
                     const SizedBox(height: 10),
                     ..._logs.map((log) => _NewsCard(log: log)),
                   ],
@@ -202,8 +267,8 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
 
   String _compactNumber(double n) {
     if (n >= 1e12) return '\$${(n / 1e12).toStringAsFixed(1)}T';
-    if (n >= 1e9)  return '\$${(n / 1e9).toStringAsFixed(1)}B';
-    if (n >= 1e6)  return '\$${(n / 1e6).toStringAsFixed(1)}M';
+    if (n >= 1e9) return '\$${(n / 1e9).toStringAsFixed(1)}B';
+    if (n >= 1e6) return '\$${(n / 1e6).toStringAsFixed(1)}M';
     return '\$${n.toStringAsFixed(0)}';
   }
 }
@@ -211,23 +276,34 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
 class _StatCard extends StatelessWidget {
   final String label, value, sub;
   final Color color;
-  const _StatCard({required this.label, required this.value, required this.sub, required this.color});
+  const _StatCard(
+      {required this.label,
+      required this.value,
+      required this.sub,
+      required this.color});
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: AppColors.surfaceLight,
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-    ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-      const SizedBox(height: 4),
-      Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: color)),
-      Text(sub, style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-    ]),
-  );
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w800, color: color)),
+          Text(sub,
+              style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        ]),
+      );
 }
 
 class _NewsCard extends StatelessWidget {
@@ -248,20 +324,39 @@ class _NewsCard extends StatelessWidget {
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
-          width: 36, height: 36,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: isPos ? AppColors.pastelGreen : isNeg ? AppColors.pastelRed : AppColors.pastelYellow,
+            color: isPos
+                ? AppColors.pastelGreen
+                : isNeg
+                    ? AppColors.pastelRed
+                    : AppColors.pastelYellow,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
-          child: Text('${log.score >= 0 ? '+' : ''}${log.score.toStringAsFixed(1)}',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
-                  color: isPos ? AppColors.primary : isNeg ? AppColors.danger : AppColors.warning)),
+          child: Text(
+              '${log.score >= 0 ? '+' : ''}${log.score.toStringAsFixed(1)}',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: isPos
+                      ? AppColors.primary
+                      : isNeg
+                          ? AppColors.danger
+                          : AppColors.warning)),
         ),
         const SizedBox(width: 10),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(log.headline, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(log.headline,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary)),
           const SizedBox(height: 4),
           Text('${log.source} · ${_fmt(log.timestamp)}',
               style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
@@ -271,7 +366,20 @@ class _NewsCard extends StatelessWidget {
   }
 
   String _fmt(DateTime dt) {
-    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${m[dt.month-1]} ${dt.day}';
+    const m = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${m[dt.month - 1]} ${dt.day}';
   }
 }
