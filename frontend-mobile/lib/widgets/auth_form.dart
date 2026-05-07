@@ -151,7 +151,10 @@ class _AuthFormState extends State<AuthForm> {
           hint: _isRegister ? 'En az 8 karakter' : '••••••••',
           obscure: _obscurePass,
           onToggle: () => setState(() => _obscurePass = !_obscurePass),
-          validator: Validators.password,
+          // Login'de sadece boş mu kontrolü; kayıtta güç kuralları
+          validator: _isRegister
+              ? Validators.password
+              : (v) => (v == null || v.isEmpty) ? 'Şifre zorunludur.' : null,
         ),
 
         // Şifre tekrar (yalnızca kayıt)

@@ -314,79 +314,65 @@ export default function WatchlistPage() {
                 key={item.id}
                 className="rounded-2xl bg-surface-light border border-black/5 p-5 hover:shadow-md transition-all"
               >
+                {/* Kart başlığı: sol = tıklanabilir detay linki, sağ = aksiyon butonları */}
                 <div className="flex items-start justify-between mb-4">
-                  <Link
-                    href={`/crypto/${asset.id}`}
-                    className="flex items-center gap-3 group"
-                  >
-                    <div
-                      className={cn(
-                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white text-xs font-bold shadow-sm",
-                        symbolColors[asset.symbol] || "bg-slate-500"
-                      )}
-                    >
+                  <Link href={`/crypto/${asset.id}`} className="flex items-center gap-3 group flex-1 min-w-0">
+                    <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white text-xs font-bold shadow-sm",
+                      symbolColors[asset.symbol] || "bg-slate-500")}>
                       {asset.symbol}
                     </div>
-                    <div>
-                      <p className="text-base font-bold text-text-primary group-hover:text-primary transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-base font-bold text-text-primary group-hover:text-primary transition-colors truncate">
                         {asset.name}
                       </p>
                       <p className="text-xs text-text-secondary">{asset.symbol}</p>
                     </div>
                   </Link>
-                  <div className="flex gap-1">
+                  {/* Aksiyon butonları — her zaman görünür */}
+                  <div className="flex gap-1 shrink-0 ml-2">
                     <button
                       onClick={() => setAlertSymbol(asset.symbol)}
                       title={`${asset.symbol} için alarm kur`}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-pastel-blue transition-colors"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-pastel-blue hover:bg-blue-100 transition-colors"
                     >
-                      <Bell className="h-4 w-4 text-text-secondary" />
+                      <Bell className="h-4 w-4 text-blue-500" />
                     </button>
                     <button
                       onClick={() => handleRemove(asset.symbol)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-pastel-red transition-colors"
+                      title="Watchlist'ten çıkar"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-pastel-red hover:bg-red-100 transition-colors"
                     >
-                      <Trash2 className="h-4 w-4 text-text-secondary hover:text-danger" />
+                      <Trash2 className="h-4 w-4 text-danger" />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-end justify-between mb-4">
-                  <div>
-                    <p className="text-2xl font-extrabold text-text-primary">
-                      {formatCurrency(asset.current_price)}
-                    </p>
-                    <div
-                      className={cn(
-                        "flex items-center gap-1 mt-1 text-sm font-bold",
-                        asset.change_24h >= 0 ? "text-primary" : "text-danger"
-                      )}
-                    >
-                      {asset.change_24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                      {asset.change_24h >= 0 ? "+" : ""}
-                      {asset.change_24h.toFixed(2)}%
+                {/* Kart gövdesi — tıklanınca detay açılır */}
+                <Link href={`/crypto/${asset.id}`} className="block">
+                  <div className="flex items-end justify-between mb-4">
+                    <div>
+                      <p className="text-2xl font-extrabold text-text-primary">
+                        {formatCurrency(asset.current_price)}
+                      </p>
+                      <div className={cn("flex items-center gap-1 mt-1 text-sm font-bold",
+                        asset.change_24h >= 0 ? "text-primary" : "text-danger")}>
+                        {asset.change_24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                        {asset.change_24h >= 0 ? "+" : ""}{asset.change_24h.toFixed(2)}%
+                      </div>
+                    </div>
+                    <MiniChart data={sparkline} color={asset.change_24h >= 0 ? "#10B981" : "#EF4444"} width={100} height={40} />
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t border-black/5">
+                    <div>
+                      <p className="text-[10px] text-text-secondary uppercase tracking-wider">Market Cap</p>
+                      <p className="text-xs font-bold text-text-primary">{formatCompactNumber(asset.market_cap)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-text-secondary uppercase tracking-wider">Detay →</p>
+                      <p className="text-xs font-bold text-primary">Görüntüle</p>
                     </div>
                   </div>
-                  <MiniChart
-                    data={sparkline}
-                    color={asset.change_24h >= 0 ? "#10B981" : "#EF4444"}
-                    width={100}
-                    height={40}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-black/5">
-                  <div>
-                    <p className="text-[10px] text-text-secondary uppercase tracking-wider">Market Cap</p>
-                    <p className="text-xs font-bold text-text-primary">
-                      {formatCompactNumber(asset.market_cap)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-text-secondary uppercase tracking-wider">24h Change</p>
-                    <SentimentBadge score={asset.change_24h / 100} size="sm" />
-                  </div>
-                </div>
+                </Link>
               </div>
             );
           })}

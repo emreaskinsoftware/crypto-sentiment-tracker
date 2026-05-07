@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_form.dart';
 import '../widgets/crypto_card.dart';
+import 'crypto_detail_screen.dart';
 
 class WatchlistScreen extends StatefulWidget {
   const WatchlistScreen({super.key});
@@ -319,7 +320,12 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                         color: AppColors.danger,
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
-                      child: CryptoCard(asset: asset),
+                      child: CryptoCard(
+                        asset: asset,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => CryptoDetailScreen(asset: asset),
+                        )),
+                      ),
                     )),
             ],
           ),
