@@ -12,6 +12,9 @@ build/
 *.zip
 *.db
 
+# Proje dokümantasyonu — sadece lokal
+CLAUDE.md
+
 # Firebase — asla commit etme, Firebase Console'dan indir
 google-services.json
 GoogleService-Info.plist
