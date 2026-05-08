@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -52,7 +52,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
 
 
 @router.get("/top-movers", response_model=TopMoversResponse)
-def get_top_movers(limit: int = 3, db: Session = Depends(get_db)):
+def get_top_movers(limit: int = Query(default=3, ge=1, le=20), db: Session = Depends(get_db)):
     gainers = (
         db.query(Asset)
         .order_by(Asset.change_24h.desc())

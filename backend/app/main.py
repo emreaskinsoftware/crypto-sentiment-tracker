@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import settings
 from app.core.database import Base, engine
 from app.api.auth import router as auth_router
 from app.api.assets import router as assets_router
@@ -8,6 +9,7 @@ from app.api.alerts import router as alerts_router
 from app.api.watchlist import router as watchlist_router
 from app.api.dashboard import router as dashboard_router
 from app.api.devices import router as devices_router
+from app.api.pipeline import router as pipeline_router
 import app.models  # noqa: F401 — ensures all models are registered before create_all
 
 # Create all tables on startup
@@ -21,11 +23,10 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS - allow frontend origins
+# CORS — originler .env dosyasındaki ALLOWED_ORIGINS'den okunur
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000",
-                   "http://localhost:8080", "http://127.0.0.1:8080"],
+    allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,6 +39,7 @@ app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(watchlist_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(devices_router, prefix="/api/v1")
+app.include_router(pipeline_router, prefix="/api/v1")
 
 
 @app.get("/")

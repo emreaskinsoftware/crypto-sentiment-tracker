@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -128,7 +128,7 @@ def get_asset(asset_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{asset_id}/price-history")
-def get_price_history(asset_id: int, limit: int = 720, db: Session = Depends(get_db)):
+def get_price_history(asset_id: int, limit: int = Query(default=720, ge=1, le=1440), db: Session = Depends(get_db)):
     records = (
         db.query(PriceHistory)
         .filter(PriceHistory.asset_id == asset_id)
@@ -140,7 +140,7 @@ def get_price_history(asset_id: int, limit: int = 720, db: Session = Depends(get
 
 
 @router.get("/{asset_id}/sentiment", response_model=list[SentimentLogResponse])
-def get_sentiment_logs(asset_id: int, limit: int = 50, db: Session = Depends(get_db)):
+def get_sentiment_logs(asset_id: int, limit: int = Query(default=50, ge=1, le=500), db: Session = Depends(get_db)):
     logs = (
         db.query(SentimentLog)
         .filter(SentimentLog.asset_id == asset_id)

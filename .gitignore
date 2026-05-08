@@ -1,25 +1,71 @@
+# ── Bağımlılıklar ─────────────────────────────────────────────
 node_modules/
 venv/
 .dart_tool/
+
+# ── Ortam değişkenleri (KESİNLİKLE commit edilmez) ────────────
 .env
 .env.local
+.env.*.local
+.env.production
+backend/.env
+frontend-web/.env.local
+
+# ── Derleme çıktıları ──────────────────────────────────────────
 __pycache__/
 *.pyc
+*.pyo
 .next/
 build/
-.flutter-plugins-dependencies
-~$*
-*.zip
+dist/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+htmlcov/
+
+# ── Veritabanı dosyaları ───────────────────────────────────────
 *.db
+*.sqlite
+*.sqlite3
 
-# Proje dokümantasyonu — sadece lokal
-CLAUDE.md
-
-# Firebase — asla commit etme, Firebase Console'dan indir
+# ── Firebase & Google (KESİNLİKLE commit edilmez) ─────────────
 google-services.json
 GoogleService-Info.plist
 firebase_options.dart
+*firebase*.json
+*firebaseapp*.json
 
-# Servis hesabı anahtarları
+# ── Kriptografik anahtarlar & sertifikalar ─────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
 *service-account*.json
 *credentials*.json
+*secret*.json
+*private*.json
+*private_key*.json
+
+# ── Flutter ────────────────────────────────────────────────────
+.flutter-plugins-dependencies
+.flutter-plugins
+
+# ── IDE & araçlar ──────────────────────────────────────────────
+.idea/
+.vscode/settings.json
+*.iml
+.DS_Store
+Thumbs.db
+
+# ── Ofis geçici dosyaları ──────────────────────────────────────
+~$*
+
+# ── Diğer ─────────────────────────────────────────────────────
+*.zip
+*.log
+*.swp
+
+# ── Lokal belgeler ─────────────────────────────────────────────
+CLAUDE.md
