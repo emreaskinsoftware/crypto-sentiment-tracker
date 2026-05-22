@@ -175,7 +175,7 @@ class TestAuthFlow(unittest.TestCase):
     def test_duplicate_register_blocked(self):
         _, email = _new_user()
         resp = client.post("/api/v1/auth/register",
-                           json={"email": email, "password": "P!", "full_name": "X"})
+                           json={"email": email, "password": "Pass1234!", "full_name": "Test User"})
         self.assertEqual(resp.status_code, 400)
 
     def test_wrong_password_blocked(self):

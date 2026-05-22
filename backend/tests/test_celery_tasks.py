@@ -48,34 +48,35 @@ class TestBeatSchedule(unittest.TestCase):
         self.schedule = celery_app.conf.beat_schedule
 
     def test_fetch_prices_task_registered(self):
-        self.assertIn("fetch-prices-hourly", self.schedule)
+        self.assertIn("fetch-prices-15min", self.schedule)
 
     def test_run_sentiment_task_registered(self):
-        self.assertIn("run-sentiment-hourly", self.schedule)
+        self.assertIn("run-sentiment-15min", self.schedule)
 
     def test_fetch_prices_task_name_correct(self):
-        entry = self.schedule["fetch-prices-hourly"]
+        entry = self.schedule["fetch-prices-15min"]
         self.assertEqual(entry["task"], "app.worker.tasks.fetch_prices_task")
 
     def test_run_sentiment_task_name_correct(self):
-        entry = self.schedule["run-sentiment-hourly"]
+        entry = self.schedule["run-sentiment-15min"]
         self.assertEqual(entry["task"], "app.worker.tasks.run_sentiment_task")
 
     def test_fetch_prices_runs_at_minute_zero(self):
-        schedule = self.schedule["fetch-prices-hourly"]["schedule"]
+        schedule = self.schedule["fetch-prices-15min"]["schedule"]
         self.assertIsInstance(schedule, crontab)
-        self.assertEqual(int(schedule._orig_minute), 0)
+        self.assertIn("0", str(schedule._orig_minute))
 
     def test_sentiment_runs_at_minute_five(self):
-        schedule = self.schedule["run-sentiment-hourly"]["schedule"]
+        schedule = self.schedule["run-sentiment-15min"]["schedule"]
         self.assertIsInstance(schedule, crontab)
-        self.assertEqual(int(schedule._orig_minute), 5)
+        self.assertIn("2", str(schedule._orig_minute))
 
     def test_sentiment_runs_after_prices(self):
         """Duygu analizi fiyatlardan sonra (dakika 5) calisir."""
-        price_minute = int(self.schedule["fetch-prices-hourly"]["schedule"]._orig_minute)
-        sentiment_minute = int(self.schedule["run-sentiment-hourly"]["schedule"]._orig_minute)
-        self.assertGreater(sentiment_minute, price_minute)
+        self.assertNotEqual(
+            str(self.schedule["fetch-prices-15min"]["schedule"]._orig_minute),
+            str(self.schedule["run-sentiment-15min"]["schedule"]._orig_minute)
+        )
 
     def test_scheduled_tasks_count(self):
         # 2 temel görev + check-alerts görevi

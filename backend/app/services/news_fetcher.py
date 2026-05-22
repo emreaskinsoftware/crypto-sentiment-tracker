@@ -54,11 +54,76 @@ RSS_SOURCES: list[dict[str, str]] = [
 
 # Kripto anahtar kelimeleri: sembol → arama terimleri
 SYMBOL_KEYWORDS: dict[str, list[str]] = {
-    "BTC": ["bitcoin", "btc"],
-    "ETH": ["ethereum", "eth", "ether"],
-    "BNB": ["binance coin", "bnb"],
-    "SOL": ["solana", "sol"],
-    "XRP": ["ripple", "xrp"],
+    "BTC":   ["bitcoin", "btc"],
+    "ETH":   ["ethereum", "eth", "ether"],
+    "BNB":   ["binance coin", "bnb"],
+    "SOL":   ["solana", "sol"],
+    "XRP":   ["ripple", "xrp"],
+    "ADA":   ["cardano", "ada"],
+    "DOGE":  ["dogecoin", "doge"],
+    "AVAX":  ["avalanche", "avax"],
+    "DOT":   ["polkadot", "dot"],
+    "MATIC": ["polygon", "matic"],
+    "LINK":  ["chainlink", "link"],
+    "UNI":   ["uniswap", "uni"],
+    "LTC":   ["litecoin", "ltc"],
+    "ATOM":  ["cosmos", "atom"],
+    "XLM":   ["stellar", "xlm"],
+    "ALGO":  ["algorand", "algo"],
+    "VET":   ["vechain", "vet"],
+    "FIL":   ["filecoin", "fil"],
+    "TRX":   ["tron", "trx"],
+    "ETC":   ["ethereum classic", "etc"],
+    "NEAR":  ["near protocol", "near"],
+    "FTM":   ["fantom", "ftm"],
+    "SAND":  ["sandbox", "sand"],
+    "MANA":  ["decentraland", "mana"],
+    "AAVE":  ["aave"],
+    "GRT":   ["the graph", "grt"],
+    "ENJ":   ["enjin", "enj"],
+    "CHZ":   ["chiliz", "chz"],
+    "SUSHI": ["sushiswap", "sushi"],
+    "COMP":  ["compound", "comp"],
+    "MKR":   ["maker", "mkr"],
+    "SNX":   ["synthetix", "snx"],
+    "CRV":   ["curve", "crv"],
+    "1INCH": ["1inch"],
+    "ZEC":   ["zcash", "zec"],
+    "DASH":  ["dash"],
+    "XMR":   ["monero", "xmr"],
+    "EOS":   ["eos"],
+    "NEO":   ["neo"],
+    "WAVES": ["waves"],
+    "ZIL":   ["zilliqa", "zil"],
+    "BAT":   ["basic attention", "bat"],
+    "HOT":   ["holo", "hot"],
+    "OMG":   ["omg network", "omg"],
+    "LRC":   ["loopring", "lrc"],
+    "ROSE":  ["oasis", "rose"],
+    "ICP":   ["internet computer", "icp"],
+    "STX":   ["stacks", "stx"],
+    "EGLD":  ["elrond", "egld"],
+    "HBAR":  ["hedera", "hbar"],
+    "IOTA":  ["iota"],
+    "RUNE":  ["thorchain", "rune"],
+    "CAKE":  ["pancakeswap", "cake"],
+    "AR":    ["arweave"],
+    "KSM":   ["kusama", "ksm"],
+    "CELO":  ["celo"],
+    "ONE":   ["harmony", "one"],
+    "THETA": ["theta"],
+    "FET":   ["fetch.ai", "fet"],
+    "INJ":   ["injective", "inj"],
+    "SUI":   ["sui"],
+    "APT":   ["aptos", "apt"],
+    "OP":    ["optimism", "op"],
+    "ARB":   ["arbitrum", "arb"],
+    "TON":   ["toncoin", "ton"],
+    "SHIB":  ["shiba inu", "shib"],
+    "PEPE":  ["pepe"],
+    "WIF":   ["dogwifhat", "wif"],
+    "FLOKI": ["floki"],
+    "BONK":  ["bonk"],
 }
 
 HEADERS = {
@@ -178,6 +243,13 @@ def _fetch_reddit(subreddit: str = "CryptoCurrency", limit: int = 25) -> list[Ne
 
 
 # ── Sembol eşleştirme ─────────────────────────────────────────────────────────
+
+def register_symbol(symbol: str, keywords: list[str] | None = None) -> None:
+    """Yeni bir kripto sembolünü runtime'da SYMBOL_KEYWORDS'e ekler."""
+    sym = symbol.upper().strip()
+    if sym not in SYMBOL_KEYWORDS:
+        SYMBOL_KEYWORDS[sym] = keywords if keywords else [sym.lower()]
+
 
 def _assign_symbol(item: NewsItem) -> NewsItem:
     """Başlığa göre haber öğesine kripto sembolü atar."""

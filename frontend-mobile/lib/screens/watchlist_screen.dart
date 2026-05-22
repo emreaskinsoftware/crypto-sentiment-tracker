@@ -67,77 +67,213 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
         .toList();
 
     if (!mounted) return;
+
+    final customCtrl = TextEditingController();
+    String? customError;
+    bool customLoading = false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.6,
-        maxChildSize: 0.9,
-        builder: (ctx, scroll) => Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(children: [
-            Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.black12,
-                    borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            const Text('Varlık Ekle',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary)),
-            const SizedBox(height: 12),
-            if (available.isEmpty)
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          maxChildSize: 0.92,
+          builder: (ctx, scroll) => Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF141B2A),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(children: [
+              // Handle
+              const SizedBox(height: 12),
+              Center(child: Container(width: 36, height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 16),
               const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text('Tüm varlıklar eklenmiş.'))
-            else
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Watchlist\'e Ekle',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Özel sembol girişi
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Herhangi bir Binance sembolü ekle',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                    const SizedBox(height: 10),
+                    Row(children: [
+                      Expanded(
+                        child: TextField(
+                          controller: customCtrl,
+                          textCapitalization: TextCapitalization.characters,
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary, letterSpacing: 1.5),
+                          decoration: InputDecoration(
+                            hintText: 'LINK, ARB, INJ…',
+                            hintStyle: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0,
+                                color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 13),
+                            isDense: true,
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: AppColors.primary)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          ),
+                          onSubmitted: (_) async {
+                            final sym = customCtrl.text.trim().toUpperCase();
+                            if (sym.isEmpty) return;
+                            setSheet(() { customLoading = true; customError = null; });
+                            try {
+                              await ApiService.addToWatchlist(_auth.token!, sym);
+                              if (ctx.mounted) { Navigator.pop(ctx); _load(); }
+                            } catch (e) {
+                              setSheet(() { customLoading = false;
+                                customError = e.toString().replaceFirst('Exception: ', ''); });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: customLoading ? null : () async {
+                          final sym = customCtrl.text.trim().toUpperCase();
+                          if (sym.isEmpty) return;
+                          setSheet(() { customLoading = true; customError = null; });
+                          try {
+                            await ApiService.addToWatchlist(_auth.token!, sym);
+                            if (ctx.mounted) { Navigator.pop(ctx); _load(); }
+                          } catch (e) {
+                            setSheet(() { customLoading = false;
+                              customError = e.toString().replaceFirst('Exception: ', ''); });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: customLoading
+                              ? const SizedBox(width: 16, height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ]),
+                    if (customError != null) ...[
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        const Icon(Icons.error_outline_rounded, size: 13, color: AppColors.danger),
+                        const SizedBox(width: 5),
+                        Expanded(child: Text(customError!,
+                            style: const TextStyle(fontSize: 11, color: AppColors.danger))),
+                      ]),
+                    ],
+                  ]),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Piyasa Listesi',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Curated liste
               Expanded(
-                  child: ListView.builder(
-                controller: scroll,
-                itemCount: available.length,
-                itemBuilder: (_, i) {
-                  final a = available[i];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      child: Text(a['symbol'] as String,
-                          style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary)),
-                    ),
-                    title: Text(a['name'] as String,
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
-                    subtitle: Text(
-                        '\$${(a['current_price'] as num).toStringAsFixed(2)}'),
-                    trailing: ElevatedButton(
-                      onPressed: () async {
-                        final ok = await ApiService.addToWatchlist(
-                            _auth.token!, a['symbol'] as String);
-                        if (ok) {
-                          Navigator.pop(ctx);
-                          _load();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10))),
-                      child: const Text('Ekle', style: TextStyle(fontSize: 13)),
-                    ),
-                  );
-                },
-              )),
-          ]),
+                child: available.isEmpty
+                    ? const Center(child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text('Tüm piyasa varlıkları eklendi.',
+                            style: TextStyle(color: AppColors.textSecondary))))
+                    : ListView.builder(
+                        controller: scroll,
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        itemCount: available.length,
+                        itemBuilder: (_, i) {
+                          final a = available[i];
+                          final sym = a['symbol'] as String;
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.04),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                            ),
+                            child: Row(children: [
+                              Container(
+                                width: 36, height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(sym.length > 3 ? sym.substring(0, 3) : sym,
+                                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(a['name'] as String,
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                                Text('\$${(a['current_price'] as num).toStringAsFixed(2)}',
+                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                              ])),
+                              GestureDetector(
+                                onTap: () async {
+                                  try {
+                                    await ApiService.addToWatchlist(_auth.token!, sym);
+                                    if (ctx.mounted) { Navigator.pop(ctx); _load(); }
+                                  } catch (e) {
+                                    if (ctx.mounted) {
+                                      ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                                        content: Text(e.toString().replaceFirst('Exception: ', '')),
+                                        backgroundColor: AppColors.danger,
+                                      ));
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text('Ekle',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                                ),
+                              ),
+                            ]),
+                          );
+                        },
+                      ),
+              ),
+            ]),
+          ),
         ),
       ),
     );

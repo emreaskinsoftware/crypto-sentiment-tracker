@@ -21,3 +21,5 @@ celery[redis]
 redis
 # Hafta 11 — Firebase Cloud Messaging
 firebase-admin
+# Rate limiting
+slowapi

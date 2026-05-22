@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/radar_screen.dart';
@@ -8,10 +9,13 @@ import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint('[Firebase] Başlatılamadı: $e');
+  // Web için firebase_options.dart tanımlı olmadığından web'de atla
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint('[Firebase] Başlatılamadı: $e');
+    }
   }
   runApp(const MyApp());
 }
@@ -24,7 +28,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'SentimentRadar',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.darkTheme,
       home: const MainShell(),
     );
   }

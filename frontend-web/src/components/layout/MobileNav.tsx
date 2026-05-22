@@ -3,20 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  Star,
-  Bell,
-  Settings,
-  X,
-  Activity,
-} from "lucide-react";
+import { LayoutDashboard, Star, Bell, Settings, X, Zap } from "lucide-react";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/",          label: "Dashboard", icon: LayoutDashboard },
   { href: "/watchlist", label: "Watchlist", icon: Star },
-  { href: "/alerts", label: "Alerts", icon: Bell },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/alerts",    label: "Alarmlar",  icon: Bell },
+  { href: "/settings",  label: "Ayarlar",   icon: Settings },
 ];
 
 interface MobileNavProps {
@@ -31,22 +24,20 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="absolute left-0 top-0 h-full w-72 bg-surface-light shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-black/5">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute left-0 top-0 h-full w-72 bg-surface-light border-r border-white/5 shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
-              <Activity className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary-dark text-white">
+              <Zap className="h-4 w-4" />
             </div>
-            <span className="text-lg font-bold text-text-primary">
-              SentimentRadar
-            </span>
+            <span className="text-base font-extrabold text-text-primary">SentimentRadar</span>
           </div>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-black/5"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 text-text-secondary" />
           </button>
         </div>
 
@@ -65,11 +56,11 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
                   isActive
-                    ? "bg-pastel-green text-primary font-bold"
-                    : "text-text-secondary hover:bg-black/5"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "text-text-secondary hover:bg-white/5 hover:text-text-primary"
                 )}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-4 w-4" />
                 {item.label}
               </Link>
             );

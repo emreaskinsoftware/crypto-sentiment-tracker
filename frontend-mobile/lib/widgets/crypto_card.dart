@@ -24,9 +24,9 @@ class CryptoCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: AppColors.surfaceCard,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
+          border: Border.all(color: AppColors.borderSubtle),
         ),
         child: Row(children: [
           Container(
@@ -60,7 +60,7 @@ class CryptoCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(
-                color: isUp ? AppColors.pastelGreen : AppColors.pastelRed,
+                color: isUp ? AppColors.primary.withValues(alpha: 0.1) : AppColors.danger.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text('${isUp ? '+' : ''}${asset.change24h.toStringAsFixed(2)}%',

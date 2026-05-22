@@ -1,41 +1,64 @@
-# ── Bağımlılıklar ─────────────────────────────────────────────
-node_modules/
+# =============================================================================
+# Crypto Sentiment Tracker — .gitignore
+# =============================================================================
+
+# ── Python ────────────────────────────────────────────────────────────────────
 venv/
-.dart_tool/
-
-# ── Ortam değişkenleri (KESİNLİKLE commit edilmez) ────────────
-.env
-.env.local
-.env.*.local
-.env.production
-backend/.env
-frontend-web/.env.local
-
-# ── Derleme çıktıları ──────────────────────────────────────────
+.venv/
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
-.next/
-build/
-dist/
+*.pyd
+.Python
 *.egg-info/
-.mypy_cache/
-.pytest_cache/
-htmlcov/
+*.egg
+dist/
+build/
+.eggs/
 
-# ── Veritabanı dosyaları ───────────────────────────────────────
+# Tip kontrolü & lint cache
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# Test & kapsam
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+*.prof
+
+# Test veritabanları (SQLite)
 *.db
 *.sqlite
 *.sqlite3
 
-# ── Firebase & Google (KESİNLİKLE commit edilmez) ─────────────
+# Celery zamanlayıcı durumu
+celerybeat-schedule
+celerybeat-schedule.db
+celerybeat.pid
+*.pid
+
+# ── Ortam değişkenleri (ASLA commit edilmez) ──────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+.env.test
+backend/.env
+frontend-web/.env.local
+
+# ── Firebase & Google (ASLA commit edilmez) ───────────────────────────────────
 google-services.json
 GoogleService-Info.plist
 firebase_options.dart
 *firebase*.json
 *firebaseapp*.json
 
-# ── Kriptografik anahtarlar & sertifikalar ─────────────────────
+# ── Kriptografik anahtarlar & sertifikalar ────────────────────────────────────
 *.pem
 *.key
 *.p12
@@ -48,24 +71,80 @@ firebase_options.dart
 *private*.json
 *private_key*.json
 
-# ── Flutter ────────────────────────────────────────────────────
-.flutter-plugins-dependencies
+# ── Node.js ───────────────────────────────────────────────────────────────────
+node_modules/
+.npm/
+.yarn/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# ── Next.js ───────────────────────────────────────────────────────────────────
+.next/
+out/
+
+# ── Flutter / Dart ────────────────────────────────────────────────────────────
+.dart_tool/
 .flutter-plugins
-
-# ── IDE & araçlar ──────────────────────────────────────────────
-.idea/
-.vscode/settings.json
+.flutter-plugins-dependencies
 *.iml
-.DS_Store
-Thumbs.db
 
-# ── Ofis geçici dosyaları ──────────────────────────────────────
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── IDE & araçlar ─────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+.cursor/
+*.suo
+*.user
+*.iws
+*.ipr
+
+# ── İşletim sistemi dosyaları ─────────────────────────────────────────────────
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+# Linux
+*~
+
+# ── Geçici & yedek dosyalar ───────────────────────────────────────────────────
+*.swp
+*.swo
+*.bak
+*.tmp
+*.orig
 ~$*
 
-# ── Diğer ─────────────────────────────────────────────────────
-*.zip
+# ── Log dosyaları ─────────────────────────────────────────────────────────────
 *.log
-*.swp
+logs/
 
-# ── Lokal belgeler ─────────────────────────────────────────────
+# ── Sıkıştırılmış dosyalar ────────────────────────────────────────────────────
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ── Ofis geçici dosyaları ─────────────────────────────────────────────────────
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# ── Lokal belgeler (commit edilmez) ───────────────────────────────────────────
 CLAUDE.md
+Dökümantasyon/

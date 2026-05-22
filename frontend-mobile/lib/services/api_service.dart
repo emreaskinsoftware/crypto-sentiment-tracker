@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:http/http.dart' as http;
 import '../models/crypto_asset.dart';
+import 'auth_service.dart';
 
 // Platform bazlı API URL seçimi
 String get _baseUrl {
@@ -119,7 +120,8 @@ class ApiService {
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
-  static Future<String?> login(String email, String password) async {
+  /// Login yapar, başarıda {'access_token': ..., 'refresh_token': ...} döner.
+  static Future<Map<String, String>?> login(String email, String password) async {
     try {
       final res = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
@@ -127,7 +129,11 @@ class ApiService {
         body: json.encode({'email': email, 'password': password}),
       );
       if (res.statusCode == 200) {
-        return json.decode(res.body)['access_token'] as String;
+        final data = json.decode(res.body) as Map<String, dynamic>;
+        return {
+          'access_token': data['access_token'] as String,
+          'refresh_token': data['refresh_token'] as String,
+        };
       }
     } catch (_) {}
     return null;
@@ -164,6 +170,7 @@ class ApiService {
     }
   }
 
+  /// Watchlist'e ekler. Başarıda true, hata varsa exception fırlatır (mesajıyla).
   static Future<bool> addToWatchlist(String token, String symbol) async {
     try {
       final res = await http.post(
@@ -171,9 +178,15 @@ class ApiService {
         headers: {'Authorization': 'Bearer $token', ..._headers},
         body: json.encode({'asset_symbol': symbol}),
       );
-      return res.statusCode == 201;
+      if (res.statusCode == 201) return true;
+      final body = json.decode(res.body) as Map<String, dynamic>;
+      if (res.statusCode == 401) throw Exception('Oturumunuz sona erdi. Ayarlar\'dan tekrar giriş yapın.');
+      if (res.statusCode == 409) throw Exception('$symbol zaten watchlist\'inizde.');
+      throw Exception(body['detail'] ?? 'Eklenemedi.');
+    } on Exception {
+      rethrow;
     } catch (_) {
-      return false;
+      throw Exception('Sunucuya bağlanılamadı.');
     }
   }
 
@@ -249,6 +262,44 @@ class ApiService {
     } catch (_) {}
   }
 
+  // ── Add Asset (auth required) ────────────────────────────────────────────
+
+  /// Yeni bir kripto sembolü ekler. Başarıda asset map, hata varsa exception fırlatır.
+  static Future<Map<String, dynamic>> addAsset(String token, String symbol) async {
+    final res = await http.post(
+      Uri.parse('$_baseUrl/assets/add'),
+      headers: {'Authorization': 'Bearer $token', ..._headers},
+      body: json.encode({'symbol': symbol.trim().toUpperCase()}),
+    );
+    final body = json.decode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 201 || res.statusCode == 200) return body;
+    throw Exception(body['detail'] ?? 'Bilinmeyen hata');
+  }
+
+  // ── Pipeline ─────────────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> triggerPipeline(String token) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$_baseUrl/pipeline/trigger'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      return json.decode(res.body) as Map<String, dynamic>;
+    } catch (_) {
+      return {'status': 'error', 'message': 'Sunucuya bağlanılamadı.'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getPipelineStatus() async {
+    try {
+      final res = await http.get(Uri.parse('$_baseUrl/pipeline/status'));
+      if (res.statusCode != 200) return {'running': false, 'cooldown_remaining_seconds': 0};
+      return json.decode(res.body) as Map<String, dynamic>;
+    } catch (_) {
+      return {'running': false, 'cooldown_remaining_seconds': 0};
+    }
+  }
+
   // ── Raw asset list (id+symbol+name+price için) ───────────────────────────
 
   static Future<List<Map<String, dynamic>>> fetchRawAssets() async {
@@ -283,6 +334,27 @@ class ApiService {
     } catch (_) {
       return null;
     }
+  }
+
+  // ── Auth-retry wrapper ────────────────────────────────────────────────────
+
+  /// Token gerektiren her HTTP çağrısı için wrapper.
+  /// 401 gelirse sessizce refresh yapar ve bir kez daha dener.
+  static Future<http.Response> authedRequest(
+    Future<http.Response> Function(String token) makeRequest,
+  ) async {
+    final token = AuthService.instance.token;
+    if (token == null) {
+      return http.Response('{"detail":"Unauthorized"}', 401);
+    }
+    var res = await makeRequest(token);
+    if (res.statusCode == 401) {
+      final refreshed = await AuthService.instance.silentRefresh();
+      if (refreshed && AuthService.instance.token != null) {
+        res = await makeRequest(AuthService.instance.token!);
+      }
+    }
+    return res;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

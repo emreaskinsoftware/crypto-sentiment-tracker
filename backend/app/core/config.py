@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = secrets.token_hex(32)
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60
+    JWT_REFRESH_EXPIRE_DAYS: int = 7
 
     # CORS — virgülle ayrılmış origin listesi
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,http://127.0.0.1:8080"

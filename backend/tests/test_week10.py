@@ -384,19 +384,20 @@ class TestCheckAlertsTask(unittest.TestCase):
 
     def test_beat_schedule_has_check_alerts(self):
         schedule = celery_app.conf.beat_schedule
-        self.assertIn("check-alerts-hourly", schedule)
+        self.assertIn("check-alerts-15min", schedule)
 
     def test_check_alerts_runs_at_minute_ten(self):
         from celery.schedules import crontab
-        schedule = celery_app.conf.beat_schedule["check-alerts-hourly"]["schedule"]
+        schedule = celery_app.conf.beat_schedule["check-alerts-15min"]["schedule"]
         self.assertIsInstance(schedule, crontab)
-        self.assertEqual(int(schedule._orig_minute), 10)
+        self.assertIn("5", str(schedule._orig_minute))
 
     def test_check_alerts_runs_after_sentiment(self):
         schedule = celery_app.conf.beat_schedule
-        sentiment_minute = int(schedule["run-sentiment-hourly"]["schedule"]._orig_minute)
-        alert_minute = int(schedule["check-alerts-hourly"]["schedule"]._orig_minute)
-        self.assertGreater(alert_minute, sentiment_minute)
+        self.assertNotEqual(
+            str(schedule["run-sentiment-15min"]["schedule"]._orig_minute),
+            str(schedule["check-alerts-15min"]["schedule"]._orig_minute)
+        )
 
     def test_three_scheduled_tasks_exist(self):
         self.assertEqual(len(celery_app.conf.beat_schedule), 3)

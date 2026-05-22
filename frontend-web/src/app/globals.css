@@ -5,16 +5,25 @@
   --color-primary-dark: #059669;
   --color-danger: #EF4444;
   --color-warning: #F59E0B;
-  --color-bg-light: #F6F8F7;
-  --color-bg-dark: #0F1A14;
-  --color-surface-light: #FFFFFF;
-  --color-surface-dark: #1A2E23;
-  --color-text-primary: #102219;
-  --color-text-secondary: #4A705E;
-  --color-pastel-green: #E6F9F0;
-  --color-pastel-red: #FEF2F2;
-  --color-pastel-yellow: #FFFBEB;
-  --color-pastel-blue: #EFF5FD;
+
+  /* Dark terminal theme */
+  --color-bg-light: #080D0A;
+  --color-bg-dark: #040704;
+  --color-surface-light: #0C1510;
+  --color-surface-dark: #080D0A;
+  --color-surface-card: #0F1B13;
+
+  --color-text-primary: #D4EDE1;
+  --color-text-secondary: #527A65;
+
+  /* Subtle tinted pastels for dark cards */
+  --color-pastel-green: rgba(16, 185, 129, 0.07);
+  --color-pastel-red: rgba(239, 68, 68, 0.07);
+  --color-pastel-yellow: rgba(245, 158, 11, 0.07);
+  --color-pastel-blue: rgba(59, 130, 246, 0.07);
+
+  --color-border: rgba(16, 185, 129, 0.1);
+
   --font-display: "Plus Jakarta Sans", sans-serif;
 }
 
@@ -23,6 +32,87 @@ body {
   background-color: var(--color-bg-light);
   color: var(--color-text-primary);
 }
+
+/* Animated gradient orb background */
+.bg-orb {
+  position: fixed;
+  border-radius: 9999px;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-orb-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%);
+  top: -200px;
+  left: -100px;
+  animation: orb-drift 20s ease-in-out infinite alternate;
+}
+
+.bg-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.04) 0%, transparent 70%);
+  bottom: 100px;
+  right: -100px;
+  animation: orb-drift 25s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes orb-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(40px, 30px) scale(1.1); }
+}
+
+/* Pipeline progress bar animation */
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(300%)  skewX(-12deg); }
+}
+
+.pipeline-panel {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 40px rgba(16, 185, 129, 0.05);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(15, 27, 19, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+/* Fiyat flash animasyonları */
+@keyframes flash-up {
+  0%   { background-color: rgba(16, 185, 129, 0.22); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-down {
+  0%   { background-color: rgba(239, 68, 68, 0.22); }
+  100% { background-color: transparent; }
+}
+.price-flash-up   { animation: flash-up   0.9s ease-out forwards; }
+.price-flash-down { animation: flash-down 0.9s ease-out forwards; }
 
 @utility scrollbar-hide {
   -ms-overflow-style: none;

@@ -3,6 +3,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { CryptoTable } from "@/components/dashboard/CryptoTable";
 import { SentimentFeed } from "@/components/dashboard/SentimentFeed";
 import { TopMovers } from "@/components/dashboard/TopMovers";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import {
   fetchAssets,
   generateSparkline,
@@ -42,7 +43,6 @@ export default async function DashboardPage() {
     fetchDashboardSummary(),
   ]);
 
-  // Fetch all sentiment summaries in parallel
   const sentiments = await Promise.all(
     assets.map((a) => fetchSentimentSummary(a.symbol))
   );
@@ -51,7 +51,6 @@ export default async function DashboardPage() {
     mapAsset(asset, sentiments[i])
   );
 
-  // Fetch recent sentiment logs from top 3 assets for the feed
   const logArrays = await Promise.all(
     assets.slice(0, 3).map((a) => fetchSentimentLogs(a.id, 4))
   );
@@ -76,45 +75,38 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">Good Morning!</h1>
-        <p className="text-sm text-text-secondary mt-1">
-          Here is your crypto market overview for today.
-        </p>
-      </div>
+      {/* Header with refresh button */}
+      <DashboardHeader />
 
+      {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Market Cap"
           value={`$${(summary.total_market_cap / 1_000_000_000_000).toFixed(2)}T`}
-          subtitle="Tracked assets"
+          subtitle="Takip edilen varlıklar"
           icon={Coins}
-          bgColor="bg-pastel-green border-primary/10"
-          iconColor="text-primary"
+          variant="green"
         />
         <StatCard
           title="Avg Sentiment"
           value={avgSentiment > 0 ? `+${avgSentiment.toFixed(2)}` : avgSentiment.toFixed(2)}
-          subtitle="Across all assets"
+          subtitle="Tüm varlıklar ortalaması"
           icon={Activity}
-          bgColor="bg-pastel-blue border-blue-500/10"
-          iconColor="text-blue-500"
+          variant="blue"
         />
         <StatCard
           title="Bullish Assets"
           value={`${positiveCount}/${summary.total_assets}`}
-          subtitle="Positive sentiment"
+          subtitle="Pozitif sentiment"
           icon={TrendingUp}
-          bgColor="bg-pastel-yellow border-yellow-500/10"
-          iconColor="text-yellow-600"
+          variant="yellow"
         />
         <StatCard
           title="News Analyzed"
           value={sentimentLogs.length > 0 ? `${summary.total_assets * 28}+` : "—"}
-          subtitle="Last 24 hours"
+          subtitle="Son 24 saat"
           icon={BarChart3}
-          bgColor="bg-purple-50 border-purple-500/10"
-          iconColor="text-purple-500"
+          variant="purple"
         />
       </div>
 

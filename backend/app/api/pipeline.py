@@ -2,10 +2,11 @@ import logging
 from datetime import datetime, timezone
 from threading import Lock
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
 from app.api.deps import get_current_user
 from app.core.database import SessionLocal
+from app.core.limiter import limiter
 from app.models.user import User
 from app.services.price_fetcher import run_price_pipeline
 from app.services.sentiment_pipeline import run_sentiment_pipeline
@@ -38,7 +39,7 @@ class TriggerResponse(BaseModel):
 def _run_full_pipeline() -> None:
     db = SessionLocal()
     try:
-        run_price_pipeline()
+        run_price_pipeline(db)
         run_sentiment_pipeline(db)
         logger.info("Manuel pipeline tamamlandi")
     except Exception as exc:
@@ -51,7 +52,9 @@ def _run_full_pipeline() -> None:
 
 
 @router.post("/trigger", response_model=TriggerResponse)
+@limiter.limit("5/minute")
 def trigger_pipeline(
+    request: Request,
     background_tasks: BackgroundTasks,
     _: User = Depends(get_current_user),
 ) -> TriggerResponse:
@@ -84,7 +87,8 @@ def trigger_pipeline(
 
 
 @router.get("/status", response_model=PipelineStatusResponse)
-def get_pipeline_status() -> PipelineStatusResponse:
+@limiter.limit("60/minute")
+def get_pipeline_status(request: Request) -> PipelineStatusResponse:
     with _lock:
         running = _state["running"]
         last_run: datetime | None = _state["last_run_at"]

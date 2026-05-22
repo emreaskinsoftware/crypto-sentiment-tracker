@@ -121,7 +121,7 @@ class TestAuthEndpoints(unittest.TestCase):
 
     def test_login_returns_token(self):
         client.post("/api/v1/auth/register", json={
-            "email": "login_test@example.com", "password": "Pass123!", "full_name": "T"
+            "email": "login_test@example.com", "password": "Pass123!", "full_name": "Test User"
         })
         resp = client.post("/api/v1/auth/login", json={
             "email": "login_test@example.com", "password": "Pass123!"
@@ -131,7 +131,7 @@ class TestAuthEndpoints(unittest.TestCase):
 
     def test_login_wrong_password_returns_401(self):
         client.post("/api/v1/auth/register", json={
-            "email": "wrong_pw@example.com", "password": "Pass123!", "full_name": "T"
+            "email": "wrong_pw@example.com", "password": "Pass123!", "full_name": "Test User"
         })
         resp = client.post("/api/v1/auth/login", json={
             "email": "wrong_pw@example.com", "password": "WrongPass!"
@@ -320,10 +320,10 @@ class TestWatchlistEndpoints(unittest.TestCase):
         resp = client.post("/api/v1/watchlist/", headers=_auth(self.token), json={"asset_symbol": "BTC"})
         self.assertEqual(resp.status_code, 409)
 
-    def test_add_unknown_asset_returns_404(self):
+    def test_add_unknown_asset_returns_422(self):
         resp = client.post("/api/v1/watchlist/", headers=_auth(self.token),
                            json={"asset_symbol": "FAKECOIN"})
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 422)
 
     def test_remove_from_watchlist_returns_204(self):
         client.post("/api/v1/watchlist/", headers=_auth(self.token), json={"asset_symbol": "BTC"})

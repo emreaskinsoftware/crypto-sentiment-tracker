@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
 from app.models.alert import Alert
+from app.models.alert_trigger import AlertTrigger
 from app.models.asset import Asset
 from app.models.sentiment_log import SentimentLog
 from app.models.user import User
@@ -108,6 +109,16 @@ def check_alerts(db: Session) -> dict:
                     threshold=alert.threshold,
                     current_value=current_value if current_value is not None else 0.0,
                 )
+
+            # Web toast için trigger kaydı oluştur
+            trigger = AlertTrigger(
+                alert_id=alert.id,
+                condition_type=alert.condition_type,
+                threshold=alert.threshold,
+                actual_value=current_value if current_value is not None else 0.0,
+                is_read=False,
+            )
+            db.add(trigger)
 
             alert.last_triggered_at = now
             db.commit()

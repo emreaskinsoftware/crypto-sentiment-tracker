@@ -14,25 +14,43 @@ from typing import Any
 import requests
 from sqlalchemy.orm import Session
 
+from app.core.database import SessionLocal
 from app.models.asset import Asset
 from app.models.price_history import PriceHistory
 
 logger = logging.getLogger(__name__)
 
 # İzlenen kripto semboller (Binance formatı)
-TRACKED_SYMBOLS: list[str] = ["BTC", "ETH", "SOL", "ADA", "XRP", "DOGE", "AVAX", "DOT"]
+TRACKED_SYMBOLS: list[str] = [
+    "BTC", "ETH", "BNB", "SOL", "XRP",
+    "ADA", "DOGE", "AVAX", "DOT", "MATIC",
+    "LINK", "LTC", "ATOM", "NEAR", "ARB",
+    "OP", "TON", "SHIB", "UNI", "FTM",
+]
 BINANCE_BASE_URL = "https://api.binance.com/api/v3"
 
 # Binance sembol eşleştirmesi: uygulama sembolü → Binance pair
 BINANCE_PAIRS: dict[str, str] = {
-    "BTC":  "BTCUSDT",
-    "ETH":  "ETHUSDT",
-    "SOL":  "SOLUSDT",
-    "ADA":  "ADAUSDT",
-    "XRP":  "XRPUSDT",
-    "DOGE": "DOGEUSDT",
-    "AVAX": "AVAXUSDT",
-    "DOT":  "DOTUSDT",
+    "BTC":   "BTCUSDT",
+    "ETH":   "ETHUSDT",
+    "BNB":   "BNBUSDT",
+    "SOL":   "SOLUSDT",
+    "XRP":   "XRPUSDT",
+    "ADA":   "ADAUSDT",
+    "DOGE":  "DOGEUSDT",
+    "AVAX":  "AVAXUSDT",
+    "DOT":   "DOTUSDT",
+    "MATIC": "MATICUSDT",
+    "LINK":  "LINKUSDT",
+    "LTC":   "LTCUSDT",
+    "ATOM":  "ATOMUSDT",
+    "NEAR":  "NEARUSDT",
+    "ARB":   "ARBUSDT",
+    "OP":    "OPUSDT",
+    "TON":   "TONUSDT",
+    "SHIB":  "SHIBUSDT",
+    "UNI":   "UNIUSDT",
+    "FTM":   "FTMUSDT",
 }
 
 
@@ -92,6 +110,35 @@ def fetch_price_for_symbol(symbol: str) -> dict[str, float] | None:
     }
 
 
+def fetch_price_for_any_symbol(symbol: str) -> dict[str, float] | None:
+    """
+    Herhangi bir Binance USDT pair için fiyat çeker.
+    BINANCE_PAIRS sözlüğünde yoksa {symbol}USDT pair'ını doğrudan dener.
+    Dönüş: {"price", "volume", "market_cap", "change_24h"} veya None (sembol bulunamazsa).
+    """
+    sym_upper = symbol.upper().strip()
+    pair = BINANCE_PAIRS.get(sym_upper, f"{sym_upper}USDT")
+    try:
+        resp = requests.get(
+            f"{BINANCE_BASE_URL}/ticker/24hr",
+            params={"symbol": pair},
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            logger.warning("Binance'de bulunamadı: %s (pair: %s)", sym_upper, pair)
+            return None
+        ticker = resp.json()
+        return {
+            "price": float(ticker.get("lastPrice", 0)),
+            "volume": float(ticker.get("volume", 0)),
+            "market_cap": 0.0,
+            "change_24h": float(ticker.get("priceChangePercent", 0)),
+        }
+    except requests.RequestException as exc:
+        logger.error("Binance fiyat hatası (%s): %s", sym_upper, exc)
+        return None
+
+
 def fetch_all_prices() -> dict[str, dict[str, float]]:
     """
     Tüm izlenen semboller için fiyat verilerini çeker.
@@ -143,22 +190,31 @@ def save_price_to_db(db: Session, symbol: str, price_data: dict[str, float]) -> 
     return record
 
 
-def run_price_pipeline(db: Session) -> dict[str, int]:
+def run_price_pipeline(db: Session | None = None) -> dict[str, int]:
     """
     Tüm semboller için fiyat çekme + kaydetme pipeline'ını çalıştırır.
     Dönüş: {"fetched": N, "saved": N, "failed": N}
+    db verilmezse kendi session'ını oluşturup kapatır.
     """
+    close_db = db is None
+    if db is None:
+        db = SessionLocal()
+
     prices = fetch_all_prices()
     saved = 0
     failed = 0
 
-    for symbol, data in prices.items():
-        try:
-            save_price_to_db(db, symbol, data)
-            saved += 1
-        except Exception as exc:
-            logger.error("Kaydetme hatası (%s): %s", symbol, exc)
-            db.rollback()
-            failed += 1
+    try:
+        for symbol, data in prices.items():
+            try:
+                save_price_to_db(db, symbol, data)
+                saved += 1
+            except Exception as exc:
+                logger.error("Kaydetme hatası (%s): %s", symbol, exc)
+                db.rollback()
+                failed += 1
+    finally:
+        if close_db:
+            db.close()
 
     return {"fetched": len(prices), "saved": saved, "failed": failed}

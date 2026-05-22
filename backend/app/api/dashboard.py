@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.limiter import limiter
 from app.models.asset import Asset
 from app.models.sentiment_log import SentimentLog
 from app.schemas.dashboard import DashboardSummary, TopMoversResponse
@@ -10,7 +11,8 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
 @router.get("/summary", response_model=DashboardSummary)
-def get_dashboard_summary(db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def get_dashboard_summary(request: Request, db: Session = Depends(get_db)):
     assets = db.query(Asset).all()
     if not assets:
         return DashboardSummary(
@@ -52,7 +54,8 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
 
 
 @router.get("/top-movers", response_model=TopMoversResponse)
-def get_top_movers(limit: int = Query(default=3, ge=1, le=20), db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def get_top_movers(request: Request, limit: int = Query(default=3, ge=1, le=20), db: Session = Depends(get_db)):
     gainers = (
         db.query(Asset)
         .order_by(Asset.change_24h.desc())

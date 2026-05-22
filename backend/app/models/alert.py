@@ -25,6 +25,7 @@ class Alert(Base):
     # Relationships
     user: Mapped["User"] = relationship(back_populates="alerts")  # type: ignore[name-defined]
     asset: Mapped["Asset"] = relationship(back_populates="alerts")  # type: ignore[name-defined]
+    triggers: Mapped[list["AlertTrigger"]] = relationship(back_populates="alert", cascade="all, delete-orphan")  # type: ignore[name-defined]
 
     def __repr__(self) -> str:
         return f"<Alert(user_id={self.user_id}, asset_id={self.asset_id}, type={self.condition_type})>"

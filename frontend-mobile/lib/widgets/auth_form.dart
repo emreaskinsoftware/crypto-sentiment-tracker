@@ -51,10 +51,11 @@ class _AuthFormState extends State<AuthForm> {
       if (ok) {
         if (!mounted) return;
         // Kayıt başarılı → otomatik giriş yap
-        final token = await ApiService.login(
+        final tokens = await ApiService.login(
             _emailCtrl.text.trim(), _passCtrl.text);
-        if (token != null) {
-          AuthService.instance.setAuth(token, _emailCtrl.text.trim());
+        if (tokens != null) {
+          AuthService.instance.setAuth(
+              tokens['access_token']!, tokens['refresh_token']!, _emailCtrl.text.trim());
           widget.onSuccess?.call();
         } else {
           setState(() => _serverError = 'Hesap oluşturuldu. Şimdi giriş yapabilirsiniz.');
@@ -64,11 +65,12 @@ class _AuthFormState extends State<AuthForm> {
         setState(() => _serverError = 'Bu e-posta zaten kayıtlı.');
       }
     } else {
-      final token = await ApiService.login(
+      final tokens = await ApiService.login(
           _emailCtrl.text.trim(), _passCtrl.text);
       setState(() => _loading = false);
-      if (token != null) {
-        AuthService.instance.setAuth(token, _emailCtrl.text.trim());
+      if (tokens != null) {
+        AuthService.instance.setAuth(
+            tokens['access_token']!, tokens['refresh_token']!, _emailCtrl.text.trim());
         widget.onSuccess?.call();
       } else {
         setState(() => _serverError = 'E-posta veya şifre hatalı.');

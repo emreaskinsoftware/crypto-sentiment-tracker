@@ -5,7 +5,6 @@ import {
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
@@ -16,57 +15,68 @@ interface PriceChartProps {
   color?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function PriceTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl border border-white/10 bg-surface-card px-3 py-2 shadow-lg text-xs">
+      <p className="text-text-secondary mb-1">{label}</p>
+      <p className="font-bold text-text-primary">
+        ${Number(payload[0]?.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+      </p>
+    </div>
+  );
+}
+
 export function PriceChart({ data, color = "#10B981" }: PriceChartProps) {
-  const chartData = data.filter((_, i) => i % 6 === 0).map((d) => ({
-    time: new Date(d.timestamp).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    }),
+  // Veri noktalarını seyrekleştir — çok fazla nokta X eksenini karıştırır
+  const maxLabels = 7;
+  const step = Math.max(1, Math.floor(data.length / maxLabels));
+  const chartData = data.map((d, i) => ({
+    time: i % step === 0
+      ? new Date(d.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : "",
     price: d.price,
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={chartData}>
+    <ResponsiveContainer width="100%" height={220}>
+      <AreaChart data={chartData} margin={{ top: 8, right: 4, bottom: 0, left: -8 }}>
         <defs>
-          <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={color} stopOpacity={0.2} />
-            <stop offset="95%" stopColor={color} stopOpacity={0} />
+          <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.22} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+
         <XAxis
           dataKey="time"
-          tick={{ fontSize: 11, fill: "#4A705E" }}
+          tick={{ fontSize: 10, fill: "#6B7280" }}
           tickLine={false}
           axisLine={false}
+          interval={0}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "#4A705E" }}
+          tick={{ fontSize: 10, fill: "#6B7280" }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(v) => `$${v.toLocaleString()}`}
+          tickFormatter={(v) => `$${Number(v).toLocaleString("en-US", { notation: "compact" })}`}
           domain={["auto", "auto"]}
+          width={56}
+          tickCount={4}
         />
-        <Tooltip
-          contentStyle={{
-            borderRadius: "12px",
-            border: "none",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            fontSize: "13px",
-            fontFamily: "Plus Jakarta Sans",
-          }}
-          formatter={(value) => [
-            `$${Number(value).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
-            "Price",
-          ]}
-        />
+
+        <Tooltip content={<PriceTooltip />} />
+
         <Area
           type="monotone"
           dataKey="price"
           stroke={color}
           strokeWidth={2}
-          fill="url(#priceGradient)"
+          fill="url(#priceGrad)"
+          dot={false}
+          activeDot={{ r: 4, fill: color, stroke: "#fff", strokeWidth: 1.5 }}
+          isAnimationActive={false}
         />
       </AreaChart>
     </ResponsiveContainer>

@@ -1,0 +1,128 @@
+services:
+
+  # ── Veritabanı ────────────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: crypto_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: crypto123
+      POSTGRES_DB: crypto_sentiment
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crypto_sentiment"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis (Celery broker) ─────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: crypto_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── FastAPI Backend ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crypto_backend
+    restart: unless-stopped
+    env_file:
+      - path: ./backend/.env
+        required: false       # .env yoksa varsayılan değerler kullanılır
+    environment:
+      DATABASE_URL: postgresql://postgres:crypto123@db:5432/crypto_sentiment
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - hf_cache:/root/.cache/huggingface  # FinBERT modelini container yeniden başlayınca yeniden indirmez
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Celery Worker ─────────────────────────────────────────────────────────
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crypto_celery_worker
+    restart: unless-stopped
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://postgres:crypto123@db:5432/crypto_sentiment
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=2
+
+  # ── Celery Beat (Zamanlayıcı — 15 dak. aralık) ───────────────────────────
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crypto_celery_beat
+    restart: unless-stopped
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://postgres:crypto123@db:5432/crypto_sentiment
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.worker.celery_app beat --loglevel=info
+
+  # ── Next.js Web Frontend ──────────────────────────────────────────────────
+  frontend-web:
+    build:
+      context: ./frontend-web
+      dockerfile: Dockerfile
+      args:
+        # Tarayıcıdan erişilecek backend adresi — port 8000 dışarıya açık
+        NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    container_name: crypto_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:   # PostgreSQL verileri kalıcı
+  hf_cache:        # HuggingFace / FinBERT model cache (~500MB, bir kez indirilir)

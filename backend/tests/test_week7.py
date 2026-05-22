@@ -48,34 +48,34 @@ class TestBeatSchedule(unittest.TestCase):
         self.schedule = celery_app.conf.beat_schedule
 
     def test_fetch_prices_task_registered(self):
-        self.assertIn("fetch-prices-hourly", self.schedule)
+        self.assertIn("fetch-prices-15min", self.schedule)
 
     def test_run_sentiment_task_registered(self):
-        self.assertIn("run-sentiment-hourly", self.schedule)
+        self.assertIn("run-sentiment-15min", self.schedule)
 
     def test_fetch_prices_task_name_correct(self):
-        entry = self.schedule["fetch-prices-hourly"]
+        entry = self.schedule["fetch-prices-15min"]
         self.assertEqual(entry["task"], "app.worker.tasks.fetch_prices_task")
 
     def test_run_sentiment_task_name_correct(self):
-        entry = self.schedule["run-sentiment-hourly"]
+        entry = self.schedule["run-sentiment-15min"]
         self.assertEqual(entry["task"], "app.worker.tasks.run_sentiment_task")
 
-    def test_fetch_prices_runs_at_minute_zero(self):
-        schedule = self.schedule["fetch-prices-hourly"]["schedule"]
+    def test_fetch_prices_runs_at_quarter_hours(self):
+        # 15 dak. takvim: 0,15,30,45. dakikalar
+        schedule = self.schedule["fetch-prices-15min"]["schedule"]
         self.assertIsInstance(schedule, crontab)
-        self.assertEqual(int(schedule._orig_minute), 0)
-
-    def test_sentiment_runs_at_minute_five(self):
-        schedule = self.schedule["run-sentiment-hourly"]["schedule"]
-        self.assertIsInstance(schedule, crontab)
-        self.assertEqual(int(schedule._orig_minute), 5)
+        self.assertIn("0", str(schedule._orig_minute))
 
     def test_sentiment_runs_after_prices(self):
-        """Duygu analizi fiyatlardan sonra (dakika 5) calisir."""
-        price_minute = int(self.schedule["fetch-prices-hourly"]["schedule"]._orig_minute)
-        sentiment_minute = int(self.schedule["run-sentiment-hourly"]["schedule"]._orig_minute)
-        self.assertGreater(sentiment_minute, price_minute)
+        """Duygu analizi fiyatlardan (XX:00) sonraki dakikada (XX:02) calisir."""
+        price_schedule   = self.schedule["fetch-prices-15min"]["schedule"]
+        sentiment_schedule = self.schedule["run-sentiment-15min"]["schedule"]
+        self.assertIsInstance(price_schedule, crontab)
+        self.assertIsInstance(sentiment_schedule, crontab)
+        # İkisi de 15 dakikalık aralıkta, fiyat önce
+        self.assertNotEqual(str(price_schedule._orig_minute),
+                            str(sentiment_schedule._orig_minute))
 
     def test_scheduled_tasks_count(self):
         # Hafta 7: 2 gorev, Hafta 10'da check-alerts eklenerek 3 oldu

@@ -13,21 +13,21 @@ celery_app = Celery(
 celery_app.conf.timezone = "UTC"
 celery_app.conf.enable_utc = True
 
-# Saatlik Cron Job takvimi
+# 15 dakikalık veri toplama takvimi
 celery_app.conf.beat_schedule = {
-    # Her saat başı (XX:00) fiyat verisi çek
-    "fetch-prices-hourly": {
+    # Her 15 dakikada bir (XX:00, XX:15, XX:30, XX:45) fiyat verisi çek
+    "fetch-prices-15min": {
         "task": "app.worker.tasks.fetch_prices_task",
-        "schedule": crontab(minute=0),
+        "schedule": crontab(minute="0,15,30,45"),
     },
-    # Her saat 5. dakikada (XX:05) duygu analizi yap — fiyatlardan sonra
-    "run-sentiment-hourly": {
+    # Her 15 dakikada bir, 2 dakika sonra duygu analizi yap — fiyatlardan sonra
+    "run-sentiment-15min": {
         "task": "app.worker.tasks.run_sentiment_task",
-        "schedule": crontab(minute=5),
+        "schedule": crontab(minute="2,17,32,47"),
     },
-    # Her saat 10. dakikada (XX:10) alarm koşullarını tara — sentiment'tan sonra
-    "check-alerts-hourly": {
+    # Her 15 dakikada bir, 5 dakika sonra alarm koşullarını tara
+    "check-alerts-15min": {
         "task": "app.worker.tasks.check_alerts_task",
-        "schedule": crontab(minute=10),
+        "schedule": crontab(minute="5,20,35,50"),
     },
 }
