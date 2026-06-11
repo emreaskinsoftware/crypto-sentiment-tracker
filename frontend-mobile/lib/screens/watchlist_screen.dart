@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/crypto_asset.dart';
 import '../services/api_service.dart';
@@ -17,6 +18,7 @@ class WatchlistScreen extends StatefulWidget {
 class _WatchlistScreenState extends State<WatchlistScreen> {
   List<CryptoAsset> _watchlist = [];
   bool _loading = true;
+  Timer? _pollTimer;
 
   final _auth = AuthService.instance;
 
@@ -25,10 +27,14 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     super.initState();
     _auth.addListener(_onAuthChanged);
     _load();
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (_auth.isLoggedIn) _load();
+    });
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _auth.removeListener(_onAuthChanged);
     super.dispose();
   }

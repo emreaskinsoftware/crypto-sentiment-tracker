@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
@@ -15,16 +16,21 @@ class _AlertsScreenState extends State<AlertsScreen> {
   List<Map<String, dynamic>> _assets = [];
   bool _loading = true;
   final _auth = AuthService.instance;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _auth.addListener(_onAuthChanged);
     _load();
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (_auth.isLoggedIn) _load();
+    });
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _auth.removeListener(_onAuthChanged);
     super.dispose();
   }

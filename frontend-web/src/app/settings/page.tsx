@@ -21,13 +21,13 @@ export default function SettingsPage() {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
-    const token = await apiLogin(email, password);
-    if (token) {
-      setToken(token);
+    const result = await apiLogin(email, password);
+    if ("error" in result) {
+      setMessage({ type: "error", text: result.error });
+    } else {
+      setToken(result.token);
       setIsLoggedIn(true);
       setMessage({ type: "success", text: "Login successful! Watchlist and Alerts are now accessible." });
-    } else {
-      setMessage({ type: "error", text: "Invalid email or password." });
     }
     setLoading(false);
   };
@@ -36,12 +36,12 @@ export default function SettingsPage() {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
-    const ok = await apiRegister(email, password, fullName);
-    if (ok) {
+    const result = await apiRegister(email, password, fullName);
+    if ("error" in result) {
+      setMessage({ type: "error", text: result.error });
+    } else {
       setMessage({ type: "success", text: "Account created! You can now log in." });
       setMode("login");
-    } else {
-      setMessage({ type: "error", text: "Registration failed. Email may already be in use." });
     }
     setLoading(false);
   };

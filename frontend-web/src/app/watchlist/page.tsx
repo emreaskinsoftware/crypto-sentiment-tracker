@@ -252,6 +252,8 @@ export default function WatchlistPage() {
       setLoading(false);
     };
     load();
+    const interval = setInterval(load, 10_000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleRemove = async (symbol: string) => {

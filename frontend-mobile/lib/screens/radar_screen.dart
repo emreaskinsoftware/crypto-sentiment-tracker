@@ -71,11 +71,19 @@ class _RadarScreenState extends State<RadarScreen> {
   Timer? _pollTimer;
   Timer? _cooldownTimer;
   Timer? _doneTimer;
+  Timer? _autoRefreshTimer;
+
+  static const _autoRefreshInterval = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
     _load();
+    _autoRefreshTimer = Timer.periodic(_autoRefreshInterval, (_) {
+      if (_kind == _RefreshKind.idle || _kind == _RefreshKind.done) {
+        _load();
+      }
+    });
   }
 
   @override
@@ -84,10 +92,11 @@ class _RadarScreenState extends State<RadarScreen> {
     _pollTimer?.cancel();
     _cooldownTimer?.cancel();
     _doneTimer?.cancel();
+    _autoRefreshTimer?.cancel();
     super.dispose();
   }
 
-  // ── Data load (just DB fetch) ───────────────────────────────────────────────
+  // ── Data load ──────────────────────────────────────────────────────────────
   Future<void> _load() async {
     if (_kind != _RefreshKind.running) {
       setState(() { _loading = _assets.isEmpty; _error = null; });
@@ -96,10 +105,35 @@ class _RadarScreenState extends State<RadarScreen> {
       final results = await Future.wait([
         ApiService.fetchAssetsWithSentiment(),
         ApiService.fetchRecentLogs(),
+        ApiService.fetchLivePrices(),
       ]);
       if (!mounted) return;
+
+      final assets = results[0] as List<CryptoAsset>;
+      final livePrices = results[2] as Map<String, Map<String, double>>;
+
+      // Canlı fiyatları DB fiyatlarının üzerine yaz
+      final updated = assets.map((a) {
+        final live = livePrices[a.symbol];
+        if (live == null) return a;
+        return CryptoAsset(
+          id: a.id,
+          symbol: a.symbol,
+          name: a.name,
+          price: live['price']!,
+          change24h: live['change_24h']!,
+          volume24h: a.volume24h,
+          marketCap: a.marketCap,
+          sentimentScore: a.sentimentScore,
+          sentimentLabel: a.sentimentLabel,
+          sparkline: a.sparkline,
+          isWatchlisted: a.isWatchlisted,
+          symbolColor: a.symbolColor,
+        );
+      }).toList();
+
       setState(() {
-        _assets  = results[0] as List<CryptoAsset>;
+        _assets  = updated;
         _logs    = results[1] as List<SentimentLog>;
         _loading = false;
       });

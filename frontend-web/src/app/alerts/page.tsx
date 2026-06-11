@@ -112,9 +112,9 @@ export default function AlertsPage() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const token = getToken();
-    setIsLoggedIn(!!token);
-    const loadData = async () => {
+    const load = async () => {
+      const token = getToken();
+      setIsLoggedIn(!!token);
       const [alertData, assetData] = await Promise.all([
         token ? fetchAlerts() : Promise.resolve([]),
         fetchAssets(),
@@ -123,7 +123,10 @@ export default function AlertsPage() {
       setAssets(assetData);
       setLoading(false);
     };
-    loadData();
+
+    load();
+    const interval = setInterval(load, 10_000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleDelete = async (id: number) => {

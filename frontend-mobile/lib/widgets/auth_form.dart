@@ -45,15 +45,15 @@ class _AuthFormState extends State<AuthForm> {
     setState(() => _loading = true);
 
     if (_isRegister) {
-      final ok = await ApiService.register(
+      final error = await ApiService.register(
           _emailCtrl.text.trim(), _passCtrl.text, _nameCtrl.text.trim());
       setState(() => _loading = false);
-      if (ok) {
+      if (error == null) {
         if (!mounted) return;
         // Kayıt başarılı → otomatik giriş yap
         final tokens = await ApiService.login(
             _emailCtrl.text.trim(), _passCtrl.text);
-        if (tokens != null) {
+        if (!tokens.containsKey('error')) {
           AuthService.instance.setAuth(
               tokens['access_token']!, tokens['refresh_token']!, _emailCtrl.text.trim());
           widget.onSuccess?.call();
@@ -62,18 +62,18 @@ class _AuthFormState extends State<AuthForm> {
           setState(() => _isRegister = false);
         }
       } else {
-        setState(() => _serverError = 'Bu e-posta zaten kayıtlı.');
+        setState(() => _serverError = error);
       }
     } else {
       final tokens = await ApiService.login(
           _emailCtrl.text.trim(), _passCtrl.text);
       setState(() => _loading = false);
-      if (tokens != null) {
+      if (!tokens.containsKey('error')) {
         AuthService.instance.setAuth(
             tokens['access_token']!, tokens['refresh_token']!, _emailCtrl.text.trim());
         widget.onSuccess?.call();
       } else {
-        setState(() => _serverError = 'E-posta veya şifre hatalı.');
+        setState(() => _serverError = tokens['error']);
       }
     }
   }
@@ -88,7 +88,7 @@ class _AuthFormState extends State<AuthForm> {
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
           const SizedBox(height: 4),
           Text(_isRegister ? 'Ücretsiz hesap oluşturun' : 'Hesabınıza giriş yapın',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 20),
         ],
 
@@ -173,7 +173,7 @@ class _AuthFormState extends State<AuthForm> {
 
           // Şifre gereksinimleri ipucu
           const SizedBox(height: 8),
-          Wrap(spacing: 6, runSpacing: 4, children: const [
+          const Wrap(spacing: 6, runSpacing: 4, children: [
             _Hint('8+ karakter'),
             _Hint('Büyük harf'),
             _Hint('Küçük harf'),

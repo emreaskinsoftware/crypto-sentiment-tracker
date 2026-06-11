@@ -1,5 +1,9 @@
+// SSR (Docker içi): API_URL = http://backend:8000/api/v1
+// Client (tarayıcı): NEXT_PUBLIC_API_URL = http://localhost:8000/api/v1
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  (typeof window === "undefined"
+    ? process.env.API_URL
+    : process.env.NEXT_PUBLIC_API_URL) || "http://localhost:8000/api/v1";
 
 // ─── Client-side Utilities ────────────────────────────────────────────────────
 
@@ -307,32 +311,55 @@ export async function fetchTopMovers(limit = 3): Promise<ApiTopMovers> {
 
 // ─── Auth Endpoints ───────────────────────────────────────────────────────────
 
+function extractDetail(detail: unknown, fallback: string): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    return detail.map((e) => (typeof e?.msg === "string" ? e.msg : JSON.stringify(e))).join(", ");
+  }
+  return fallback;
+}
+
 export async function apiLogin(
   email: string,
   password: string
-): Promise<string | null> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) return null;
-  const data: ApiTokenResponse = await res.json();
-  setRefreshToken(data.refresh_token);
-  return data.access_token;
+): Promise<{ token: string; refreshToken: string } | { error: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return { error: extractDetail(body?.detail, "Giriş başarısız.") };
+    }
+    const data: ApiTokenResponse = await res.json();
+    setRefreshToken(data.refresh_token);
+    return { token: data.access_token, refreshToken: data.refresh_token };
+  } catch {
+    return { error: "Sunucuya bağlanılamadı." };
+  }
 }
 
 export async function apiRegister(
   email: string,
   password: string,
   fullName: string
-): Promise<boolean> {
-  const res = await fetch(`${API_BASE}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, full_name: fullName }),
-  });
-  return res.ok;
+): Promise<{ ok: true } | { error: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, full_name: fullName }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return { error: extractDetail(body?.detail, "Kayıt başarısız.") };
+    }
+    return { ok: true };
+  } catch {
+    return { error: "Sunucuya bağlanılamadı." };
+  }
 }
 
 // ─── Authenticated Endpoints (client-side only) ───────────────────────────────

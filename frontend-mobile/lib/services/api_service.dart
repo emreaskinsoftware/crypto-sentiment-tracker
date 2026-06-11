@@ -121,7 +121,8 @@ class ApiService {
   // ── Auth ──────────────────────────────────────────────────────────────────
 
   /// Login yapar, başarıda {'access_token': ..., 'refresh_token': ...} döner.
-  static Future<Map<String, String>?> login(String email, String password) async {
+  /// Hata durumunda {'error': '<mesaj>'} döner.
+  static Future<Map<String, String>> login(String email, String password) async {
     try {
       final res = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
@@ -135,20 +136,26 @@ class ApiService {
           'refresh_token': data['refresh_token'] as String,
         };
       }
-    } catch (_) {}
-    return null;
+      final body = json.decode(res.body) as Map<String, dynamic>? ?? {};
+      return {'error': body['detail']?.toString() ?? 'E-posta veya şifre hatalı.'};
+    } catch (_) {
+      return {'error': 'Sunucuya bağlanılamadı.'};
+    }
   }
 
-  static Future<bool> register(String email, String password, String fullName) async {
+  /// Kayıt yapar. Başarıda null, hata durumunda hata mesajı döner.
+  static Future<String?> register(String email, String password, String fullName) async {
     try {
       final res = await http.post(
         Uri.parse('$_baseUrl/auth/register'),
         headers: _headers,
         body: json.encode({'email': email, 'password': password, 'full_name': fullName}),
       );
-      return res.statusCode == 201;
+      if (res.statusCode == 201) return null;
+      final body = json.decode(res.body) as Map<String, dynamic>? ?? {};
+      return body['detail']?.toString() ?? 'Kayıt başarısız.';
     } catch (_) {
-      return false;
+      return 'Sunucuya bağlanılamadı.';
     }
   }
 
@@ -297,6 +304,27 @@ class ApiService {
       return json.decode(res.body) as Map<String, dynamic>;
     } catch (_) {
       return {'running': false, 'cooldown_remaining_seconds': 0};
+    }
+  }
+
+  // ── Live prices (Binance anlık) ──────────────────────────────────────────
+
+  /// /assets/live-prices endpoint'inden anlık fiyat ve change_24h çeker.
+  /// Başarısızlık durumunda boş map döner.
+  static Future<Map<String, Map<String, double>>> fetchLivePrices() async {
+    try {
+      final res = await http.get(Uri.parse('$_baseUrl/assets/live-prices'));
+      if (res.statusCode != 200) return {};
+      final List<dynamic> data = json.decode(res.body);
+      return {
+        for (final e in data)
+          (e['symbol'] as String): {
+            'price': (e['price'] as num).toDouble(),
+            'change_24h': (e['change_24h'] as num).toDouble(),
+          }
+      };
+    } catch (_) {
+      return {};
     }
   }
 
