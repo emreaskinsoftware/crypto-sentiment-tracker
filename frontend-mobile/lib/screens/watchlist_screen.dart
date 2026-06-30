@@ -19,7 +19,6 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   List<CryptoAsset> _watchlist = [];
   bool _loading = true;
   Timer? _pollTimer;
-
   final _auth = AuthService.instance;
 
   @override
