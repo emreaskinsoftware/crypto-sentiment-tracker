@@ -202,7 +202,7 @@ class _AuthFormState extends State<AuthForm> {
           child: ElevatedButton(
             onPressed: _loading ? null : _submit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.ink,
               foregroundColor: AppColors.paper,
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -227,22 +227,27 @@ class _TabBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        decoration: BoxDecoration(
-          color: active ? AppColors.surfaceLight : Colors.transparent,
-          borderRadius: BorderRadius.zero,
-          boxShadow: active ? [BoxShadow(color: AppColors.ink.withValues(alpha: 0.5), blurRadius: 4)] : null,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 9),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active ? AppColors.ink : AppColors.paper,
+              border: Border.all(color: AppColors.borderSubtle),
+            ),
+            child: Text(
+              label.toUpperCase(),
+              style: AppType.label(
+                size: 10,
+                weight: FontWeight.w600,
+                color: active ? AppColors.paper : AppColors.inkSoft,
+                tracking: 0.16,
+              ),
+            ),
+          ),
         ),
-        alignment: Alignment.center,
-        child: Text(label, style: TextStyle(
-            fontSize: 13, fontWeight: FontWeight.w700,
-            color: active ? AppColors.primary : AppColors.textSecondary)),
-      ),
-    ),
-  );
+      );
 }
 
 class _Field extends StatelessWidget {

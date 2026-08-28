@@ -20,15 +20,13 @@ class SettingsScreen extends StatelessWidget {
               SliverAppBar(
                 expandedHeight: 120,
                 pinned: true,
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.paperDeep,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.primary, AppColors.primaryDark],
-                      ),
+                      color: AppColors.paperDeep,
+                      border: Border(
+                          bottom: BorderSide(color: AppColors.borderSubtle)),
                     ),
                     child: SafeArea(
                       child: Padding(
@@ -37,12 +35,14 @@ class SettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            const Text('Ayarlar',
-                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.paper)),
-                            const SizedBox(height: 4),
+                            Text('AYARLAR',
+                                style: AppType.label(
+                                    size: 22, weight: FontWeight.w700, tracking: 0.06)),
+                            const SizedBox(height: 6),
                             Text(
                               auth.isLoggedIn ? auth.email ?? '' : 'Hesabınıza giriş yapın',
-                              style: const TextStyle(fontSize: 13, color: AppColors.inkFaint),
+                              style: AppType.data(
+                                  size: 11, color: AppColors.inkSoft),
                             ),
                             const SizedBox(height: 16),
                           ],
@@ -150,13 +150,13 @@ class _LoggedInCard extends StatelessWidget {
             Container(
               width: 56, height: 56,
               decoration: const BoxDecoration(
-                gradient: LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
+                color: AppColors.ink,
                 borderRadius: BorderRadius.zero,
               ),
               alignment: Alignment.center,
               child: Text(
                 (auth.email ?? 'U')[0].toUpperCase(),
-                style: const TextStyle(color: AppColors.paper, fontSize: 22, fontWeight: FontWeight.w900),
+                style: AppType.label(size: 20, weight: FontWeight.w700, color: AppColors.paper),
               ),
             ),
             const SizedBox(width: 14),
@@ -220,7 +220,8 @@ class _LoginCard extends StatelessWidget {
             child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 18),
           ),
           const SizedBox(width: 10),
-          const Text('Hesap', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          Text('HESAP',
+              style: AppType.label(size: 10, weight: FontWeight.w700, tracking: 0.2)),
         ]),
         const SizedBox(height: 16),
         AuthForm(
@@ -244,20 +245,16 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      color: AppColors.surfaceLight,
-      borderRadius: BorderRadius.zero,
-      boxShadow: [BoxShadow(color: AppColors.ink.withValues(alpha: 0.5), blurRadius: 12, offset: const Offset(0, 4))],
+      color: AppColors.paper.withValues(alpha: 0.85),
+      border: Border.all(color: AppColors.borderSubtle),
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        Container(
-          width: 36, height: 36,
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.zero),
-          alignment: Alignment.center,
-          child: Icon(icon, color: color, size: 18),
-        ),
-        const SizedBox(width: 10),
-        Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+        Icon(icon, color: AppColors.inkSoft, size: 16),
+        const SizedBox(width: 8),
+        Text(title.toUpperCase(),
+            style: AppType.label(
+                size: 10, weight: FontWeight.w700, tracking: 0.2)),
       ]),
       const SizedBox(height: 14),
       ...items.map((item) => Padding(
@@ -265,8 +262,8 @@ class _InfoCard extends StatelessWidget {
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(
             margin: const EdgeInsets.only(top: 5),
-            width: 5, height: 5,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            width: 4, height: 4,
+            decoration: const BoxDecoration(color: AppColors.inkFaint),
           ),
           const SizedBox(width: 10),
           Expanded(child: Text(item, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4))),

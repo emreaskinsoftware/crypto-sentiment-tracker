@@ -321,9 +321,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Watchlist',
+                  const Text('TAKİP LİSTESİ',
                       style: TextStyle(
-                          fontSize: 26,
+                          fontSize: 22,
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary)),
                   GestureDetector(
@@ -333,8 +333,10 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
                       decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.zero,
+                        color: AppColors.ink,
+                        boxShadow: [
+                          BoxShadow(color: AppColors.trace, offset: Offset(3, 3))
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -342,11 +344,14 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                           Icon(!_auth.isLoggedIn ? Icons.login : Icons.add,
                               color: AppColors.paper, size: 18),
                           const SizedBox(width: 4),
-                          Text(!_auth.isLoggedIn ? 'Login' : 'Add',
-                              style: const TextStyle(
+                          Text(
+                              (!_auth.isLoggedIn ? 'Giriş yap' : 'Kanal ekle')
+                                  .toUpperCase(),
+                              style: AppType.label(
+                                  size: 10,
+                                  weight: FontWeight.w600,
                                   color: AppColors.paper,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700)),
+                                  tracking: 0.16)),
                         ],
                       ),
                     ),
@@ -354,7 +359,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 ],
               ),
               const SizedBox(height: 4),
-              const Text('Track your favorite cryptocurrencies',
+              const Text('İzlemek istediğiniz kanallar',
                   style:
                       TextStyle(fontSize: 14, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
@@ -409,22 +414,23 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                           color:
                               AppColors.textSecondary.withValues(alpha: 0.3)),
                       const SizedBox(height: 12),
-                      const Text('Login required',
+                      const Text('GİRİŞ GEREKLİ',
                           style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
+                              letterSpacing: 2.4,
                               color: AppColors.textPrimary)),
                       const SizedBox(height: 6),
-                      const Text('Log in to manage your watchlist',
+                      const Text('Takip listenizi yönetmek için giriş yapın',
                           style: TextStyle(
                               fontSize: 13, color: AppColors.textSecondary)),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         onPressed: _showLoginSheet,
                         icon: const Icon(Icons.login, size: 18),
-                        label: const Text('Log In'),
+                        label: const Text('Giriş yap'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: AppColors.ink,
                           foregroundColor: AppColors.paper,
                           shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero),
@@ -452,8 +458,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                       const SizedBox(height: 12),
                       const Text('No assets in watchlist',
                           style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
+                              letterSpacing: 2.4,
                               color: AppColors.textPrimary)),
                     ],
                   ),
