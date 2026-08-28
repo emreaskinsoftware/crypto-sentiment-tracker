@@ -40,11 +40,15 @@ class _AlertsScreenState extends State<AlertsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    // Spinner sadece ilk yüklemede — arka plandaki 10 sn'lik poll listeyi
+    // her turda spinner'a çevirmesin.
+    setState(() => _loading = _alerts.isEmpty);
     final assets = await ApiService.fetchRawAssets();
+    if (!mounted) return;
     setState(() => _assets = assets);
     if (_auth.isLoggedIn) {
-      final alerts = await ApiService.fetchAlerts(_auth.token!);
+      final alerts = await ApiService.fetchAlerts();
+      if (!mounted) return;
       setState(() {
         _alerts = alerts;
         _loading = false;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2, LogIn, X, Search } from "lucide-react";
 import { cn, formatCurrency, formatCompactNumber } from "@/lib/utils";
@@ -238,18 +238,31 @@ export default function WatchlistPage() {
     setMood(m);
   };
 
+  // Bkz. alerts sayfası: uçuştaki eski bir poll yanıtının yerel ekleme/silme
+  // işlemini geri almasını engelleyen revizyon sayacı.
+  const revision = useRef(0);
+
   useEffect(() => {
-    const token = getToken();
-    setIsLoggedIn(!!token);
     const load = async () => {
-      const [wl, assets] = await Promise.all([
-        token ? fetchWatchlist() : Promise.resolve([]),
-        fetchAssets(),
-        token ? loadMood() : Promise.resolve(),
-      ]);
-      setWatchlist(wl);
-      setAllAssets(assets);
-      setLoading(false);
+      const startedAt = revision.current;
+      // Token her turda okunur; aksi hâlde poll mount anındaki değere
+      // sabitlenir ve araya giren giriş/çıkışı hiç görmez.
+      const token = getToken();
+      setIsLoggedIn(!!token);
+      try {
+        const [wl, assets] = await Promise.all([
+          token ? fetchWatchlist() : Promise.resolve([]),
+          fetchAssets(),
+          token ? loadMood() : Promise.resolve(),
+        ]);
+        if (revision.current !== startedAt) return;
+        setWatchlist(wl);
+        setAllAssets(assets);
+      } catch {
+        // Tek bir başarısız tur sayfayı bozmasın; sonraki tur tekrar dener.
+      } finally {
+        setLoading(false);
+      }
     };
     load();
     const interval = setInterval(load, 10_000);
@@ -258,11 +271,13 @@ export default function WatchlistPage() {
 
   const handleRemove = async (symbol: string) => {
     await removeFromWatchlist(symbol);
+    revision.current += 1;
     setWatchlist((prev) => prev.filter((w) => w.asset.symbol !== symbol));
     loadMood();
   };
 
   const handleAdded = (item: ApiWatchlistItem) => {
+    revision.current += 1;
     setWatchlist((prev) => [...prev, item]);
     loadMood();
   };

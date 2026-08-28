@@ -7,6 +7,7 @@ B Planı: ccxt kütüphanesi Binance'e erişemezse doğrudan Binance public REST
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -139,12 +140,60 @@ def fetch_price_for_any_symbol(symbol: str) -> dict[str, float] | None:
         return None
 
 
+def _fetch_all_prices_batch() -> dict[str, dict[str, float]]:
+    """
+    Binance /ticker/24hr endpoint'i `symbols=[...]` parametresiyle tüm sembolleri
+    TEK istekte döndürür. Sembol başına ayrı istek atmak yerine bunu kullanmak
+    20 sıralı round-trip'i 1'e indirir (endpoint sunucu tarafında bloklayan bir
+    `def` handler'da çağrıldığı için thread havuzunu de o kadar az meşgul eder).
+    Başarısızlıkta boş dict döner; çağıran sembol sembol moda düşer.
+    """
+    pairs = {BINANCE_PAIRS[s]: s for s in TRACKED_SYMBOLS if s in BINANCE_PAIRS}
+    if not pairs:
+        return {}
+
+    try:
+        resp = requests.get(
+            f"{BINANCE_BASE_URL}/ticker/24hr",
+            params={"symbols": json.dumps(list(pairs.keys()), separators=(",", ":"))},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        tickers = resp.json()
+    except (requests.RequestException, ValueError) as exc:
+        logger.warning("Binance toplu ticker hatası: %s", exc)
+        return {}
+
+    # Toplu istek liste döndürmelidir; değilse tek tek moda düşülür.
+    if not isinstance(tickers, list):
+        return {}
+
+    results: dict[str, dict[str, float]] = {}
+    for ticker in tickers:
+        if not isinstance(ticker, dict):
+            continue
+        symbol = pairs.get(ticker.get("symbol"))
+        if not symbol:
+            continue
+        results[symbol] = {
+            "price": float(ticker.get("lastPrice", 0)),
+            "volume": float(ticker.get("volume", 0)),
+            "market_cap": 0.0,  # Binance public API market cap sağlamaz
+            "change_24h": float(ticker.get("priceChangePercent", 0)),
+        }
+    return results
+
+
 def fetch_all_prices() -> dict[str, dict[str, float]]:
     """
     Tüm izlenen semboller için fiyat verilerini çeker.
     Dönüş: {"BTC": {"price": ..., "volume": ..., ...}, ...}
     """
-    results: dict[str, dict[str, float]] = {}
+    results = _fetch_all_prices_batch()
+    if results:
+        logger.info("Fiyat çekildi (toplu): %d sembol", len(results))
+        return results
+
     for symbol in TRACKED_SYMBOLS:
         data = fetch_price_for_symbol(symbol)
         if data:

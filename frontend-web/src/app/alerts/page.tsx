@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bell, Plus, Trash2, Loader2, LogIn, ToggleLeft, ToggleRight, X } from "lucide-react";
 import Link from "next/link";
 import { fetchAlerts, deleteAlert, patchAlert, createAlert, fetchAssets, getToken, type ApiAlert, type ApiAsset } from "@/lib/api";
@@ -111,17 +111,30 @@ export default function AlertsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  // Her yerel değişiklik (sil/oluştur/aç-kapa) bu sayacı artırır. Poll yanıtı
+  // ancak başladığından beri sayaç değişmediyse uygulanır; böylece uçuştaki
+  // eski bir istek silinen alarmı geri getiremez ve yavaş bir tur, sonrasında
+  // tamamlanan yeni bir turun sonucunu ezemez.
+  const revision = useRef(0);
+
   useEffect(() => {
     const load = async () => {
+      const startedAt = revision.current;
       const token = getToken();
       setIsLoggedIn(!!token);
-      const [alertData, assetData] = await Promise.all([
-        token ? fetchAlerts() : Promise.resolve([]),
-        fetchAssets(),
-      ]);
-      setAlerts(alertData);
-      setAssets(assetData);
-      setLoading(false);
+      try {
+        const [alertData, assetData] = await Promise.all([
+          token ? fetchAlerts() : Promise.resolve([]),
+          fetchAssets(),
+        ]);
+        if (revision.current !== startedAt) return;
+        setAlerts(alertData);
+        setAssets(assetData);
+      } catch {
+        // Tek bir başarısız tur sayfayı bozmasın; sonraki tur tekrar dener.
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();
@@ -131,15 +144,20 @@ export default function AlertsPage() {
 
   const handleDelete = async (id: number) => {
     await deleteAlert(id);
+    revision.current += 1;
     setAlerts((prev) => prev.filter((a) => a.id !== id));
   };
 
   const handleToggle = async (alert: ApiAlert) => {
     const updated = await patchAlert(alert.id, { is_active: !alert.is_active });
-    if (updated) setAlerts((prev) => prev.map((a) => (a.id === alert.id ? updated : a)));
+    if (updated) {
+      revision.current += 1;
+      setAlerts((prev) => prev.map((a) => (a.id === alert.id ? updated : a)));
+    }
   };
 
   const handleCreated = (alert: ApiAlert) => {
+    revision.current += 1;
     setAlerts((prev) => [alert, ...prev]);
   };
 

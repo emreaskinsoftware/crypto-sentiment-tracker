@@ -1,8 +1,11 @@
 // SSR (Docker içi): API_URL = http://backend:8000/api/v1
 // Client (tarayıcı): NEXT_PUBLIC_API_URL = http://localhost:8000/api/v1
+// Sunucuda API_URL yoksa NEXT_PUBLIC_API_URL'e düşülür: Docker dışı
+// kurulumlarda tek değişkenle yapılandırma yapılabilsin (yalnızca API_URL'e
+// bakmak SSR'ı sessizce localhost'a düşürüyordu).
 const API_BASE =
   (typeof window === "undefined"
-    ? process.env.API_URL
+    ? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
     : process.env.NEXT_PUBLIC_API_URL) || "http://localhost:8000/api/v1";
 
 // ─── Client-side Utilities ────────────────────────────────────────────────────
@@ -311,11 +314,21 @@ export async function fetchTopMovers(limit = 3): Promise<ApiTopMovers> {
 
 // ─── Auth Endpoints ───────────────────────────────────────────────────────────
 
-function extractDetail(detail: unknown, fallback: string): string {
-  if (typeof detail === "string") return detail;
+/**
+ * Hata gövdesinden kullanıcıya gösterilebilir tek bir mesaj çıkarır.
+ * - 422: FastAPI `detail`'i bir Pydantic hata listesidir → `msg` alanları.
+ * - 429: slowapi `detail` yerine `error` döndürür.
+ * Tüm hata yollarının aynı biçimi kullanabilmesi için gövdenin tamamını alır.
+ */
+function extractDetail(body: unknown, fallback: string): string {
+  if (typeof body !== "object" || body === null) return fallback;
+  const { detail, error } = body as { detail?: unknown; error?: unknown };
+
+  if (typeof detail === "string" && detail) return detail;
   if (Array.isArray(detail) && detail.length > 0) {
     return detail.map((e) => (typeof e?.msg === "string" ? e.msg : JSON.stringify(e))).join(", ");
   }
+  if (typeof error === "string" && error) return error;
   return fallback;
 }
 
@@ -331,7 +344,7 @@ export async function apiLogin(
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      return { error: extractDetail(body?.detail, "Giriş başarısız.") };
+      return { error: extractDetail(body, "Giriş başarısız.") };
     }
     const data: ApiTokenResponse = await res.json();
     setRefreshToken(data.refresh_token);
@@ -354,7 +367,7 @@ export async function apiRegister(
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      return { error: extractDetail(body?.detail, "Kayıt başarısız.") };
+      return { error: extractDetail(body, "Kayıt başarısız.") };
     }
     return { ok: true };
   } catch {
@@ -431,7 +444,7 @@ export async function addToWatchlistDetailed(
     const body = await res.json();
     if (res.status === 401) detail = "Oturumunuz sona erdi. Ayarlar sayfasından tekrar giriş yapın.";
     else if (res.status === 409) detail = `${assetSymbol.toUpperCase()} zaten watchlist'inizde.`;
-    else detail = body.detail ?? detail;
+    else detail = extractDetail(body, detail);
   } catch { /* json parse hatası */ }
 
   return { item: null, error: detail };
@@ -525,7 +538,7 @@ export async function addAsset(
 
   try {
     const body = await res.json();
-    return { asset: null, error: body.detail ?? "Bir hata oluştu." };
+    return { asset: null, error: extractDetail(body, "Bir hata oluştu.") };
   } catch {
     return { asset: null, error: "Sunucu hatası." };
   }

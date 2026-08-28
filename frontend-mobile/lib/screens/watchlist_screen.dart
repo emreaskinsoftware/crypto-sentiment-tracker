@@ -43,14 +43,18 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    // Spinner sadece ilk yüklemede — arka plandaki 10 sn'lik poll ekranı
+    // her turda spinner'a çevirmesin.
+    setState(() => _loading = _watchlist.isEmpty);
     if (_auth.isLoggedIn) {
-      final data = await ApiService.fetchWatchlist(_auth.token!);
+      final data = await ApiService.fetchWatchlist();
+      if (!mounted) return;
       setState(() {
         _watchlist = data;
         _loading = false;
       });
     } else {
+      if (!mounted) return;
       setState(() {
         _watchlist = [];
         _loading = false;
