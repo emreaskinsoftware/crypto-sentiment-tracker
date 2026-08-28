@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
+import 'widgets/paper.dart';
 import 'screens/radar_screen.dart';
 import 'screens/watchlist_screen.dart';
 import 'screens/alerts_screen.dart';
@@ -26,9 +27,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SentimentRadar',
+      title: 'CryptoSentiment — kayıt cihazı',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.recorderTheme,
       home: const MainShell(),
     );
   }
@@ -51,29 +52,76 @@ class _MainShellState extends State<MainShell> {
     SettingsScreen(),
   ];
 
+  static const _tabs = [
+    ('Kayıt', 'canlı şerit'),
+    ('Takip', 'seçili kanallar'),
+    ('Alarm', 'eşik bildirimleri'),
+    ('Ayar', 'hesap'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      // Kağıt tek yerde çizilir; ekranların Scaffold'ları saydam.
+      body: PaperBackground(
+        child: IndexedStack(index: _currentIndex, children: _screens),
       ),
+      // Cihaz gövdesi: mürekkep blok, seçili kanalda kalem işareti
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
+        color: AppColors.ink,
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 58,
+            child: Row(
+              children: List.generate(_tabs.length, (i) {
+                final selected = i == _currentIndex;
+                final (label, hint) = _tabs[i];
+
+                return Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _currentIndex = i),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.paper : Colors.transparent,
+                        border: Border(
+                          top: BorderSide(
+                            color: selected ? AppColors.trace : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            label.toUpperCase(),
+                            style: AppType.label(
+                              size: 11,
+                              weight: FontWeight.w600,
+                              color: selected ? AppColors.ink : AppColors.paper.withValues(alpha: 0.7),
+                              tracking: 0.12,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            hint,
+                            style: AppType.data(
+                              size: 8,
+                              color: selected
+                                  ? AppColors.inkSoft
+                                  : AppColors.paper.withValues(alpha: 0.35),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
           ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.radar), label: 'Radar'),
-            BottomNavigationBarItem(icon: Icon(Icons.star_border), activeIcon: Icon(Icons.star), label: 'Watchlist'),
-            BottomNavigationBarItem(icon: Icon(Icons.notifications_outlined), activeIcon: Icon(Icons.notifications), label: 'Alerts'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), activeIcon: Icon(Icons.settings), label: 'Settings'),
-          ],
         ),
       ),
     );

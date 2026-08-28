@@ -94,7 +94,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.zero),
       builder: (ctx) => StatefulBuilder(
           builder: (ctx, setS) => Padding(
                 padding: EdgeInsets.only(
@@ -159,11 +159,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.paper,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12))),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.zero)),
                             onPressed: () async {
                               final t = double.tryParse(threshCtrl.text);
                               if (t == null) return;
@@ -185,6 +185,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
@@ -203,16 +204,16 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.zero),
                       child:
                           const Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(Icons.add, color: Colors.white, size: 18),
+                        Icon(Icons.add, color: AppColors.paper, size: 18),
                         SizedBox(width: 4),
                         Text('Yeni',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.paper,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700)),
                       ]),
@@ -233,9 +234,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   padding: const EdgeInsets.all(40),
                   decoration: BoxDecoration(
                       color: AppColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.zero,
                       border: Border.all(
-                          color: Colors.black.withValues(alpha: 0.05))),
+                          color: AppColors.ink.withValues(alpha: 0.5))),
                   child: Column(children: [
                     Icon(Icons.notifications_none,
                         size: 48,
@@ -287,8 +288,8 @@ class _LoginPrompt extends StatelessWidget {
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
             color: AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.05))),
+            borderRadius: BorderRadius.zero,
+            border: Border.all(color: AppColors.ink.withValues(alpha: 0.5))),
         child: Column(children: [
           Icon(Icons.lock_outline,
               size: 48, color: AppColors.textSecondary.withValues(alpha: 0.3)),
@@ -308,9 +309,9 @@ class _LoginPrompt extends StatelessWidget {
             label: const Text('Giriş Yap'),
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12))),
+                foregroundColor: AppColors.paper,
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero)),
           ),
         ]),
       );
@@ -335,15 +336,15 @@ class _AlertCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
           color: AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.black.withValues(alpha: 0.05))),
+          borderRadius: BorderRadius.zero,
+          border: Border.all(color: AppColors.ink.withValues(alpha: 0.5))),
       child: Row(children: [
         Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
                 color: AppColors.pastelBlue,
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.zero),
             alignment: Alignment.center,
             child: const Icon(Icons.notifications_outlined,
                 color: Color(0xFF3B82F6), size: 20)),

@@ -42,12 +42,15 @@ class ApiService {
 
     final scores = await _fetchAllSentimentScores(assets);
     return assets.map((a) {
-      final score = scores[a.symbol] ?? 0.0;
-      final label = score >= 0.3
-          ? 'Positive'
-          : score <= -0.3
-              ? 'Negative'
-              : 'Neutral';
+      // Ölçüm yoksa null: 0.0 göstermek "nötr ölçüldü" demek olurdu.
+      final score = scores[a.symbol];
+      final label = score == null
+          ? 'Unmeasured'
+          : score >= 0.3
+              ? 'Positive'
+              : score <= -0.3
+                  ? 'Negative'
+                  : 'Neutral';
       return CryptoAsset(
         id: a.id,
         symbol: a.symbol,
@@ -90,7 +93,10 @@ class ApiService {
         );
         if (res.statusCode == 200) {
           final data = json.decode(res.body) as Map<String, dynamic>;
-          scores[asset.symbol] = (data['current_score'] as num).toDouble();
+          final value = (data['current_score'] as num).toDouble();
+          final count = (data['news_count_last_hour'] as num?)?.toInt() ?? 0;
+          // Gerçekten ölçülmüş mü? Sıfır skor + sıfır haber = ölçüm yok.
+          if (count > 0 || value != 0) scores[asset.symbol] = value;
         }
       } catch (_) {}
     }));
@@ -459,8 +465,8 @@ class ApiService {
       change24h: change,
       volume24h: (e['volume_24h'] as num).toDouble(),
       marketCap: (e['market_cap'] as num).toDouble(),
-      sentimentScore: 0.0,
-      sentimentLabel: 'Neutral',
+      sentimentScore: null,
+      sentimentLabel: 'Unmeasured',
       sparkline: _generateSparkline(price, change),
       isWatchlisted: false,
       symbolColor: _symbolColor(symbol),
@@ -476,18 +482,6 @@ class ApiService {
     });
   }
 
-  static Color _symbolColor(String symbol) {
-    const map = {
-      'BTC':  Color(0xFFF97316),
-      'ETH':  Color(0xFF6366F1),
-      'SOL':  Color(0xFFA855F7),
-      'ADA':  Color(0xFF3B82F6),
-      'XRP':  Color(0xFF475569),
-      'DOGE': Color(0xFFEAB308),
-      'AVAX': Color(0xFFEF4444),
-      'DOT':  Color(0xFFEC4899),
-      'BNB':  Color(0xFFF59E0B),
-    };
-    return map[symbol] ?? const Color(0xFF64748B);
-  }
+  /// Kayıt cihazında marka renkli çip yok; kanal etiketi mürekkeple basılır.
+  static Color _symbolColor(String symbol) => const Color(0xFF241E19);
 }

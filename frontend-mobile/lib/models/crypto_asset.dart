@@ -8,7 +8,8 @@ class CryptoAsset {
   final double change24h;
   final double volume24h;
   final double marketCap;
-  final double sentimentScore;
+  /// Ölçüm yoksa null — 0.0 "nötr ölçüldü" demek olurdu.
+  final double? sentimentScore;
   final String sentimentLabel;
   final List<double> sparkline;
   final bool isWatchlisted;

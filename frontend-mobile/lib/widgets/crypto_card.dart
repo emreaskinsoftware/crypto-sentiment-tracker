@@ -2,70 +2,71 @@ import 'package:flutter/material.dart';
 import '../models/crypto_asset.dart';
 import '../theme/app_theme.dart';
 import 'sentiment_badge.dart';
-import 'mini_sparkline.dart';
 
+/// Varlık defterinde bir satır. Renkli avatar çipi yok — kanal numarası,
+/// mono sembol ve hairline ayraç var.
+///
+/// Not: eskiden burada bir mini grafik vardı; verisi `_generateSparkline`
+/// tarafından uyduruluyordu. Kayıt cihazı arayüzünde sahte iz göstermek
+/// kabul edilemez olduğu için kaldırıldı.
 class CryptoCard extends StatelessWidget {
   final CryptoAsset asset;
   final VoidCallback? onTap;
+  final int? channel;
 
-  const CryptoCard({super.key, required this.asset, this.onTap});
+  const CryptoCard({super.key, required this.asset, this.onTap, this.channel});
 
-  String _formatPrice(double price) =>
-      price >= 1 ? '\$${price.toStringAsFixed(2)}' : '\$${price.toStringAsFixed(4)}';
+  String _formatPrice(double p) =>
+      p >= 1 ? '\$${p.toStringAsFixed(2)}' : '\$${p.toStringAsFixed(4)}';
 
   @override
   Widget build(BuildContext context) {
     final isUp = asset.change24h >= 0;
-    final changeColor = isUp ? AppColors.primary : AppColors.danger;
+    final changeColor = isUp ? AppColors.traceAlt : AppColors.trace;
 
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceCard,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.borderSubtle),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
         ),
         child: Row(children: [
-          Container(
-            width: 46, height: 46,
-            decoration: BoxDecoration(
-              color: asset.symbolColor,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [BoxShadow(color: asset.symbolColor.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))],
+          if (channel != null) ...[
+            SizedBox(
+              width: 18,
+              child: Text(channel!.toString().padLeft(2, '0'),
+                  style: AppType.data(size: 10, color: AppColors.inkFaint)),
             ),
-            alignment: Alignment.center,
-            child: Text(
-              asset.symbol.length > 3 ? asset.symbol.substring(0, 3) : asset.symbol,
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
-            ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 6),
+          ],
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(asset.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              Row(children: [
+                Text(asset.symbol,
+                    style: AppType.data(size: 13, weight: FontWeight.w500)),
+                if (asset.name.isNotEmpty && asset.name != asset.symbol) ...[
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(asset.name,
+                        style: AppType.label(size: 11, weight: FontWeight.w400,
+                            color: AppColors.inkSoft, tracking: 0),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                ],
+              ]),
               const SizedBox(height: 4),
               SentimentBadge(score: asset.sentimentScore),
             ]),
           ),
-          SizedBox(width: 56, height: 32, child: MiniSparkline(data: asset.sparkline, color: changeColor)),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(_formatPrice(asset.price),
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                style: AppType.data(size: 13, weight: FontWeight.w500)),
             const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-              decoration: BoxDecoration(
-                color: isUp ? AppColors.primary.withValues(alpha: 0.1) : AppColors.danger.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text('${isUp ? '+' : ''}${asset.change24h.toStringAsFixed(2)}%',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: changeColor)),
-            ),
+            Text('${isUp ? '+' : ''}${asset.change24h.toStringAsFixed(2)}%',
+                style: AppType.data(size: 12, color: changeColor)),
           ]),
         ]),
       ),

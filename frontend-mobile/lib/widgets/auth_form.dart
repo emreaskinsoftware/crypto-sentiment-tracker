@@ -107,7 +107,7 @@ class _AuthFormState extends State<AuthForm> {
 
         // Mode toggle
         Container(
-          decoration: BoxDecoration(color: AppColors.bgLight, borderRadius: BorderRadius.circular(12)),
+          decoration: const BoxDecoration(color: AppColors.bgLight, borderRadius: BorderRadius.zero),
           padding: const EdgeInsets.all(4),
           child: Row(children: [
             _TabBtn('Giriş Yap', !_isRegister, () => setState(() { _isRegister = false; _serverError = null; })),
@@ -123,7 +123,7 @@ class _AuthFormState extends State<AuthForm> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: _serverError!.contains('oluşturuldu') ? AppColors.pastelGreen : AppColors.pastelRed,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.zero,
             ),
             child: Row(children: [
               Icon(_serverError!.contains('oluşturuldu') ? Icons.check_circle_outline : Icons.error_outline,
@@ -203,13 +203,13 @@ class _AuthFormState extends State<AuthForm> {
             onPressed: _loading ? null : _submit,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.paper,
               padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               elevation: 0,
             ),
             child: _loading
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppColors.paper, strokeWidth: 2))
                 : Text(_isRegister ? 'Hesap Oluştur' : 'Giriş Yap',
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           ),
@@ -233,8 +233,8 @@ class _TabBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
           color: active ? AppColors.surfaceLight : Colors.transparent,
-          borderRadius: BorderRadius.circular(9),
-          boxShadow: active ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4)] : null,
+          borderRadius: BorderRadius.zero,
+          boxShadow: active ? [BoxShadow(color: AppColors.ink.withValues(alpha: 0.5), blurRadius: 4)] : null,
         ),
         alignment: Alignment.center,
         child: Text(label, style: TextStyle(
@@ -268,11 +268,11 @@ class _Field extends StatelessWidget {
       labelText: label, hintText: hint,
       prefixIcon: Icon(icon, size: 18, color: AppColors.textSecondary),
       filled: true, fillColor: AppColors.bgLight,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.danger, width: 1.5)),
-      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.danger, width: 1.5)),
+      border: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide.none),
+      enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide.none),
+      focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.primary, width: 1.5)),
+      errorBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.danger, width: 1.5)),
+      focusedErrorBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.danger, width: 1.5)),
     ),
   );
 }
@@ -303,11 +303,11 @@ class _PasswordField extends StatelessWidget {
         onPressed: onToggle,
       ),
       filled: true, fillColor: AppColors.bgLight,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.danger, width: 1.5)),
-      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.danger, width: 1.5)),
+      border: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide.none),
+      enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide.none),
+      focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.primary, width: 1.5)),
+      errorBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.danger, width: 1.5)),
+      focusedErrorBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.danger, width: 1.5)),
     ),
   );
 }
@@ -319,7 +319,7 @@ class _Hint extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-    decoration: BoxDecoration(color: AppColors.pastelGreen, borderRadius: BorderRadius.circular(6)),
+    decoration: const BoxDecoration(color: AppColors.pastelGreen, borderRadius: BorderRadius.zero),
     child: Text(text, style: const TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600)),
   );
 }
@@ -333,12 +333,12 @@ void showAuthSheet(BuildContext context, {VoidCallback? onSuccess}) {
     builder: (ctx) => Container(
       decoration: const BoxDecoration(
         color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.zero,
       ),
       padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20),
-            decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(2))),
+            decoration: const BoxDecoration(color: AppColors.borderSubtle, borderRadius: BorderRadius.zero)),
         AuthForm(
           showTitle: true,
           onSuccess: () {
