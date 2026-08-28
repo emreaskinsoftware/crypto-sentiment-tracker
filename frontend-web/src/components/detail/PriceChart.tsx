@@ -19,16 +19,16 @@ interface PriceChartProps {
 function PriceTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-white/10 bg-surface-card px-3 py-2 shadow-lg text-xs">
-      <p className="text-text-secondary mb-1">{label}</p>
-      <p className="font-bold text-text-primary">
+    <div className="border border-ink/12 bg-paper px-3 py-2 shadow-[2px_2px_0_var(--color-ink)] text-xs">
+      <p className="text-ink-soft mb-1">{label}</p>
+      <p className="font-bold text-ink">
         ${Number(payload[0]?.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </p>
     </div>
   );
 }
 
-export function PriceChart({ data, color = "#10B981" }: PriceChartProps) {
+export function PriceChart({ data, color = "var(--color-trace-alt)" }: PriceChartProps) {
   // Veri noktalarını seyrekleştir — çok fazla nokta X eksenini karıştırır
   const maxLabels = 7;
   const step = Math.max(1, Math.floor(data.length / maxLabels));
@@ -51,13 +51,13 @@ export function PriceChart({ data, color = "#10B981" }: PriceChartProps) {
 
         <XAxis
           dataKey="time"
-          tick={{ fontSize: 10, fill: "#6B7280" }}
+          tick={{ fontSize: 10, fill: "var(--color-ink-soft)" }}
           tickLine={false}
           axisLine={false}
           interval={0}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: "#6B7280" }}
+          tick={{ fontSize: 10, fill: "var(--color-ink-soft)" }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => `$${Number(v).toLocaleString("en-US", { notation: "compact" })}`}
@@ -75,7 +75,7 @@ export function PriceChart({ data, color = "#10B981" }: PriceChartProps) {
           strokeWidth={2}
           fill="url(#priceGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: color, stroke: "#fff", strokeWidth: 1.5 }}
+          activeDot={{ r: 4, fill: color, stroke: "var(--color-paper)", strokeWidth: 1.5 }}
           isAnimationActive={false}
         />
       </AreaChart>

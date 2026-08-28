@@ -13,12 +13,6 @@ import {
 } from "@/lib/api";
 import { PortfolioMoodCard } from "@/components/watchlist/PortfolioMoodCard";
 
-const symbolColors: Record<string, string> = {
-  BTC: "bg-orange-500", ETH: "bg-indigo-500", SOL: "bg-purple-500",
-  ADA: "bg-blue-500", XRP: "bg-slate-700", DOGE: "bg-yellow-500",
-  AVAX: "bg-red-500", DOT: "bg-pink-500",
-};
-
 function QuickAlertModal({ symbol, onClose }: { symbol: string; onClose: () => void }) {
   const [condition, setCondition] = useState("sentiment_below");
   const [threshold, setThreshold] = useState("-0.5");
@@ -39,25 +33,25 @@ function QuickAlertModal({ symbol, onClose }: { symbol: string; onClose: () => v
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-surface-card border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl mx-4" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60" onClick={onClose}>
+      <div className="bg-paper border border-ink/12 p-6 w-full max-w-sm shadow-[3px_3px_0_var(--color-ink)] mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold text-text-primary">{symbol} Alarmı</h2>
-          <button onClick={onClose} className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-white/8 transition-colors">
-            <X className="h-3.5 w-3.5 text-text-secondary" />
+          <h2 className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">{symbol} Alarmı</h2>
+          <button onClick={onClose} className="h-7 w-7 flex items-center justify-center hover:bg-grid-fine/40 transition-colors">
+            <X className="h-3.5 w-3.5 text-ink-soft" />
           </button>
         </div>
         {done ? (
           <div className="text-center py-4">
-            <p className="text-primary font-bold text-sm">✓ Alarm oluşturuldu!</p>
-            <button onClick={onClose} className="mt-3 rounded-xl bg-primary/15 border border-primary/30 px-4 py-2 text-xs font-bold text-primary">Kapat</button>
+            <p className="text-trace-alt font-bold text-sm">✓ Alarm oluşturuldu!</p>
+            <button onClick={onClose} className="mt-3 bg-trace-alt/15 border border-trace-alt/30 px-4 py-2 text-xs font-bold text-trace-alt">Kapat</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-text-secondary block mb-1.5">Koşul</label>
+              <label className="text-xs font-medium text-ink-soft block mb-1.5">Koşul</label>
               <select value={condition} onChange={(e) => setCondition(e.target.value)}
-                className="w-full rounded-xl bg-white/5 border border-white/10 py-2.5 px-3 text-sm text-text-primary focus:outline-none focus:border-primary/40 transition-colors">
+                className="w-full bg-grid-fine/40 border border-ink/12 py-2.5 px-3 text-sm text-ink focus:outline-none focus:border-trace-alt/40 transition-colors">
                 <option value="sentiment_below">Sentiment altına düşerse</option>
                 <option value="sentiment_above">Sentiment üzerine çıkarsa</option>
                 <option value="price_below">Fiyat altına düşerse</option>
@@ -65,16 +59,16 @@ function QuickAlertModal({ symbol, onClose }: { symbol: string; onClose: () => v
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-text-secondary block mb-1.5">
+              <label className="text-xs font-medium text-ink-soft block mb-1.5">
                 Eşik {isSentiment ? "(-1.0 / +1.0)" : "($)"}
               </label>
               <input type="number" step={isSentiment ? "0.01" : "1"} value={threshold}
                 onChange={(e) => setThreshold(e.target.value)}
-                className="w-full rounded-xl bg-white/5 border border-white/10 py-2.5 px-3 text-sm text-text-primary focus:outline-none focus:border-primary/40 transition-colors" />
+                className="w-full bg-grid-fine/40 border border-ink/12 py-2.5 px-3 text-sm text-ink focus:outline-none focus:border-trace-alt/40 transition-colors" />
             </div>
-            {error && <p className="text-xs text-danger">{error}</p>}
+            {error && <p className="text-xs text-trace">{error}</p>}
             <button type="submit" disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/15 border border-primary/30 py-2.5 text-sm font-bold text-primary hover:bg-primary/25 transition-colors disabled:opacity-50">
+              className="flex w-full items-center justify-center gap-2 bg-trace-alt/15 border border-trace-alt/30 py-2.5 text-sm font-bold text-trace-alt hover:bg-trace-alt/25 transition-colors disabled:opacity-50">
               {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
               Alarm Kur
             </button>
@@ -133,18 +127,18 @@ function AddAssetModal({ allAssets, watchlist, onClose, onAdded }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-surface-card border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl mx-4" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60" onClick={onClose}>
+      <div className="bg-paper border border-ink/12 p-6 w-full max-w-md shadow-[3px_3px_0_var(--color-ink)] mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold text-text-primary">Varlık Ekle</h2>
-          <button onClick={onClose} className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-white/8 transition-colors">
-            <X className="h-3.5 w-3.5 text-text-secondary" />
+          <h2 className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Varlık Ekle</h2>
+          <button onClick={onClose} className="h-7 w-7 flex items-center justify-center hover:bg-grid-fine/40 transition-colors">
+            <X className="h-3.5 w-3.5 text-ink-soft" />
           </button>
         </div>
 
         {/* Özel sembol girişi */}
-        <div className="mb-5 rounded-xl bg-white/4 border border-primary/20 p-4">
-          <p className="text-xs font-semibold text-primary/80 mb-2.5">Herhangi bir kripto para ekle</p>
+        <div className="mb-5 bg-grid-fine/40 border border-trace-alt/20 p-4">
+          <p className="text-xs font-semibold text-trace-alt/80 mb-2.5">Herhangi bir kripto para ekle</p>
           <div className="flex gap-2">
             <input
               type="text"
@@ -153,12 +147,12 @@ function AddAssetModal({ allAssets, watchlist, onClose, onAdded }: {
               onKeyDown={(e) => e.key === "Enter" && handleCustomAdd()}
               placeholder="LINK, INJ, ARB, PEPE…"
               maxLength={10}
-              className="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm font-bold text-text-primary tracking-widest placeholder:font-normal placeholder:tracking-normal placeholder:text-text-secondary/40 focus:outline-none focus:border-primary/50 transition-colors"
+              className="flex-1 bg-grid-fine/40 border border-ink/12 px-3 py-2.5 text-sm font-bold text-ink tracking-widest placeholder:font-normal placeholder:tracking-normal placeholder:text-ink-soft/40 focus:outline-none focus:border-trace-alt/50 transition-colors"
             />
             <button
               onClick={handleCustomAdd}
               disabled={customLoading || !customSymbol.trim()}
-              className="flex items-center gap-1.5 rounded-xl bg-primary/15 border border-primary/30 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/25 transition-colors disabled:opacity-40"
+              className="flex items-center gap-1.5 bg-trace-alt/15 border border-trace-alt/30 px-4 py-2.5 text-sm font-bold text-trace-alt hover:bg-trace-alt/25 transition-colors disabled:opacity-40"
             >
               {customLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
               Ekle
@@ -168,47 +162,47 @@ function AddAssetModal({ allAssets, watchlist, onClose, onAdded }: {
 
         {/* Curated liste başlığı + arama */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-secondary/60" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-soft/60" />
           <input
             autoFocus
             type="text"
             placeholder="Piyasa listesinde ara…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/4 border border-white/8 text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-primary/30 transition-colors"
+            className="w-full pl-9 pr-4 py-2.5 bg-grid-fine/40 border border-ink/12 text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:border-trace-alt/30 transition-colors"
           />
         </div>
 
         {error && (
-          <p className="text-xs text-danger/90 mb-3 flex items-start gap-1.5">
+          <p className="text-xs text-trace/90 mb-3 flex items-start gap-1.5">
             <span className="mt-0.5 shrink-0">⚠</span> {error}
           </p>
         )}
 
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary/50 mb-2">Piyasa Listesi</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-soft/50 mb-2">Piyasa Listesi</p>
 
         <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
           {filtered.length === 0 ? (
-            <p className="text-sm text-text-secondary text-center py-6">
+            <p className="text-sm text-ink-soft text-center py-6">
               {watchlistedSymbols.size >= allAssets.length ? "Tüm piyasa varlıkları eklendi." : "Sonuç bulunamadı."}
             </p>
           ) : (
             filtered.map((asset) => (
-              <div key={asset.symbol} className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-white/4 transition-colors">
+              <div key={asset.symbol} className="flex items-center justify-between px-3 py-2.5 hover:bg-grid-fine/40 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white text-[10px] font-extrabold",
-                    symbolColors[asset.symbol] || "bg-slate-600/80")}>
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center  text-paper text-[10px] font-extrabold",
+                    "bg-ink")}>
                     {asset.symbol.slice(0, 4)}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-text-primary leading-none">{asset.name}</p>
-                    <p className="text-xs text-text-secondary mt-0.5">{formatCurrency(asset.current_price)}</p>
+                    <p className="text-sm font-bold text-ink leading-none">{asset.name}</p>
+                    <p className="text-xs text-ink-soft mt-0.5">{formatCurrency(asset.current_price)}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleAdd(asset.symbol)}
                   disabled={adding === asset.symbol}
-                  className="flex items-center gap-1 rounded-lg bg-primary/15 border border-primary/25 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/25 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1 bg-trace-alt/15 border border-trace-alt/25 px-3 py-1.5 text-xs font-bold text-trace-alt hover:bg-trace-alt/25 transition-colors disabled:opacity-50"
                 >
                   {adding === asset.symbol
                     ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -285,7 +279,7 @@ export default function WatchlistPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-trace-alt" />
       </div>
     );
   }
@@ -294,21 +288,21 @@ export default function WatchlistPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Watchlist</h1>
-          <p className="text-sm text-text-secondary mt-1">Track your favorite cryptocurrencies</p>
+          <h1 className="font-label text-[26px] font-700 uppercase leading-none tracking-[0.06em] text-ink">Takip listesi</h1>
+          <p className="text-sm text-ink-soft mt-1">İzlemek istediğiniz kanalları buraya ekleyin</p>
         </div>
-        <div className="rounded-2xl bg-surface-light border-2 border-dashed border-black/10 p-12 text-center">
-          <LogIn className="h-12 w-12 text-text-secondary/30 mx-auto mb-4" />
-          <p className="text-lg font-bold text-text-primary">Login required</p>
-          <p className="text-sm text-text-secondary mt-1">
-            Please log in from Settings to manage your watchlist.
+        <div className="bg-paper border-2 border-dashed border-ink/20 p-12 text-center">
+          <LogIn className="h-12 w-12 text-ink-soft/30 mx-auto mb-4" />
+          <p className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Giriş gerekli</p>
+          <p className="text-sm text-ink-soft mt-1">
+            Takip listenizi yönetmek için Ayarlar sayfasından giriş yapın.
           </p>
           <Link
             href="/settings"
-            className="inline-flex items-center gap-2 mt-4 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors"
+            className="inline-flex items-center gap-2 border border-ink bg-ink px-4 py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] text-paper shadow-[3px_3px_0_var(--color-trace)] transition-all duration-150 hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-trace)] active:translate-y-0 active:shadow-[2px_2px_0_var(--color-trace)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
           >
             <LogIn className="h-4 w-4" />
-            Go to Settings
+            Ayarlara git
           </Link>
         </div>
       </div>
@@ -329,12 +323,12 @@ export default function WatchlistPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Watchlist</h1>
-          <p className="text-sm text-text-secondary mt-1">Track your favorite cryptocurrencies</p>
+          <h1 className="font-label text-[26px] font-700 uppercase leading-none tracking-[0.06em] text-ink">Takip listesi</h1>
+          <p className="text-sm text-ink-soft mt-1">İzlemek istediğiniz kanalları buraya ekleyin</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors"
+          className="inline-flex items-center gap-2 border border-ink bg-ink px-4 py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] text-paper shadow-[3px_3px_0_var(--color-trace)] transition-all duration-150 hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-trace)] active:translate-y-0 active:shadow-[2px_2px_0_var(--color-trace)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
         >
           <Plus className="h-4 w-4" />
           Add Asset
@@ -344,10 +338,10 @@ export default function WatchlistPage() {
       {mood && <PortfolioMoodCard mood={mood} />}
 
       {watchlist.length === 0 ? (
-        <div className="rounded-2xl bg-surface-light border-2 border-dashed border-black/10 p-12 text-center">
-          <Star className="h-12 w-12 text-text-secondary/30 mx-auto mb-4" />
-          <p className="text-lg font-bold text-text-primary">No assets in watchlist</p>
-          <p className="text-sm text-text-secondary mt-1">
+        <div className="bg-paper border-2 border-dashed border-ink/20 p-12 text-center">
+          <Star className="h-12 w-12 text-ink-soft/30 mx-auto mb-4" />
+          <p className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Takip listesi boş</p>
+          <p className="text-sm text-ink-soft mt-1">
             Add cryptocurrencies to start tracking
           </p>
         </div>
@@ -359,20 +353,20 @@ export default function WatchlistPage() {
             return (
               <div
                 key={item.id}
-                className="rounded-2xl bg-surface-light border border-black/5 p-5 hover:shadow-md transition-all"
+                className="bg-paper border border-ink/20 p-5 hover:shadow-md transition-all"
               >
                 {/* Kart başlığı: sol = tıklanabilir detay linki, sağ = aksiyon butonları */}
                 <div className="flex items-start justify-between mb-4">
                   <Link href={`/crypto/${asset.id}`} className="flex items-center gap-3 group flex-1 min-w-0">
-                    <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white text-xs font-bold shadow-sm",
-                      symbolColors[asset.symbol] || "bg-slate-500")}>
+                    <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center  text-paper text-xs font-bold shadow-sm",
+                      "bg-ink")}>
                       {asset.symbol}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-base font-bold text-text-primary group-hover:text-primary transition-colors truncate">
+                      <p className="text-base font-bold text-ink group-hover:text-trace-alt transition-colors truncate">
                         {asset.name}
                       </p>
-                      <p className="text-xs text-text-secondary">{asset.symbol}</p>
+                      <p className="text-xs text-ink-soft">{asset.symbol}</p>
                     </div>
                   </Link>
                   {/* Aksiyon butonları — her zaman görünür */}
@@ -380,16 +374,16 @@ export default function WatchlistPage() {
                     <button
                       onClick={() => setAlertSymbol(asset.symbol)}
                       title={`${asset.symbol} için alarm kur`}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-pastel-blue hover:bg-blue-100 transition-colors"
+                      className="flex h-9 w-9 items-center justify-center bg-paper-deep hover:bg-blue-100 transition-colors"
                     >
                       <Bell className="h-4 w-4 text-blue-500" />
                     </button>
                     <button
                       onClick={() => handleRemove(asset.symbol)}
                       title="Watchlist'ten çıkar"
-                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-pastel-red hover:bg-red-100 transition-colors"
+                      className="flex h-9 w-9 items-center justify-center bg-paper-deep hover:bg-red-100 transition-colors"
                     >
-                      <Trash2 className="h-4 w-4 text-danger" />
+                      <Trash2 className="h-4 w-4 text-trace" />
                     </button>
                   </div>
                 </div>
@@ -398,25 +392,25 @@ export default function WatchlistPage() {
                 <Link href={`/crypto/${asset.id}`} className="block">
                   <div className="flex items-end justify-between mb-4">
                     <div>
-                      <p className="text-2xl font-extrabold text-text-primary">
+                      <p className="text-2xl font-extrabold text-ink">
                         {formatCurrency(asset.current_price)}
                       </p>
                       <div className={cn("flex items-center gap-1 mt-1 text-sm font-bold",
-                        asset.change_24h >= 0 ? "text-primary" : "text-danger")}>
+                        asset.change_24h >= 0 ? "text-trace-alt" : "text-trace")}>
                         {asset.change_24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                         {asset.change_24h >= 0 ? "+" : ""}{asset.change_24h.toFixed(2)}%
                       </div>
                     </div>
-                    <MiniChart data={sparkline} color={asset.change_24h >= 0 ? "#10B981" : "#EF4444"} width={100} height={40} />
+                    <MiniChart data={sparkline} color={asset.change_24h >= 0 ? "var(--color-trace-alt)" : "var(--color-trace)"} width={100} height={40} />
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-black/5">
+                  <div className="flex items-center justify-between pt-4 border-t border-ink/20">
                     <div>
-                      <p className="text-[10px] text-text-secondary uppercase tracking-wider">Market Cap</p>
-                      <p className="text-xs font-bold text-text-primary">{formatCompactNumber(asset.market_cap)}</p>
+                      <p className="text-[10px] text-ink-soft uppercase tracking-wider">Market Cap</p>
+                      <p className="text-xs font-bold text-ink">{formatCompactNumber(asset.market_cap)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-text-secondary uppercase tracking-wider">Detay →</p>
-                      <p className="text-xs font-bold text-primary">Görüntüle</p>
+                      <p className="text-[10px] text-ink-soft uppercase tracking-wider">Detay →</p>
+                      <p className="text-xs font-bold text-trace-alt">Görüntüle</p>
                     </div>
                   </div>
                 </Link>

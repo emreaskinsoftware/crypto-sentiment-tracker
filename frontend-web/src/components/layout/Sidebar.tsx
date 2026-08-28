@@ -3,105 +3,75 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  Star,
-  Bell,
-  Settings,
-  Zap,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
+import { RecordingLamp } from "@/components/ui/RecordingLamp";
 
 const navItems = [
-  { href: "/",          label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/watchlist", label: "Watchlist",  icon: Star },
-  { href: "/alerts",    label: "Alarmlar",   icon: Bell },
-  { href: "/settings",  label: "Ayarlar",    icon: Settings },
+  { href: "/", label: "Kayıt", hint: "canlı şerit" },
+  { href: "/watchlist", label: "Takip", hint: "seçili kanallar" },
+  { href: "/alerts", label: "Alarm", hint: "eşik bildirimleri" },
+  { href: "/settings", label: "Ayar", hint: "hesap" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-64 flex-col bg-surface-light border-r border-white/5">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-white/5">
-        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-primary to-primary-dark" />
-          <Zap className="relative h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-base font-extrabold text-text-primary tracking-tight">
-            SentimentRadar
-          </h1>
-          <p className="text-[11px] text-primary/60 font-medium">Crypto Analytics</p>
-        </div>
+    <aside className="hidden md:flex w-56 shrink-0 flex-col bg-ink text-paper">
+      {/* Künye — cihazın üzerindeki serigrafi */}
+      <div className="px-5 pt-6 pb-5 border-b border-paper/12">
+        <p className="font-label text-[15px] font-700 uppercase tracking-[0.14em] leading-none">
+          Crypto
+          <br />
+          Sentiment
+        </p>
+        <p className="font-data text-[10px] text-paper/45 mt-2.5 tracking-wide">
+          FinBERT · 15dk çevrim
+        </p>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-5 space-y-1">
-        <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-text-secondary/50 mb-3">
-          Menü
-        </p>
+      {/* Kanal seçimi */}
+      <nav className="flex-1 py-3">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));
-          const Icon = item.icon;
 
           return (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
-                "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
-                isActive
-                  ? "bg-primary/10 text-primary border border-primary/20"
-                  : "text-text-secondary hover:bg-white/5 hover:text-text-primary"
+                "group relative flex flex-col gap-0.5 px-5 py-2.5 transition-colors duration-150",
+                isActive ? "bg-paper text-ink" : "text-paper/70 hover:bg-paper/8 hover:text-paper"
               )}
             >
-              <Icon
+              {/* Seçili kanalın kalem işareti */}
+              <span
                 className={cn(
-                  "h-4 w-4 transition-colors",
-                  isActive ? "text-primary" : "group-hover:text-text-primary"
+                  "absolute left-0 top-0 h-full w-[3px] transition-colors",
+                  isActive ? "bg-trace" : "bg-transparent"
                 )}
               />
-              {item.label}
-              {isActive && (
-                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-              )}
+              <span className="font-label text-[13px] font-600 uppercase tracking-[0.1em]">
+                {item.label}
+              </span>
+              <span
+                className={cn(
+                  "font-data text-[10px] transition-colors",
+                  isActive ? "text-ink-soft" : "text-paper/35"
+                )}
+              >
+                {item.hint}
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Market sentiment widget */}
-      <div className="mx-4 mb-5 rounded-2xl border border-white/5 bg-white/3 p-4 overflow-hidden relative">
-        <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-primary/10 blur-xl" />
-        <div className="relative">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-text-secondary/60 mb-2">
-            Market Pulse
-          </p>
-          <p className="text-3xl font-extrabold text-text-primary mb-1">+0.62</p>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-primary">
-              <TrendingUp className="h-3 w-3" />
-              <span className="text-xs font-bold">Bullish</span>
-            </div>
-            <span className="text-text-secondary/40 text-xs">•</span>
-            <span className="text-xs text-text-secondary">Genel piyasa</span>
-          </div>
-          <div className="mt-3 h-1 rounded-full bg-white/5">
-            <div className="h-full w-[72%] rounded-full bg-linear-to-r from-primary/60 to-primary" />
-          </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-danger/70 flex items-center gap-0.5">
-              <TrendingDown className="h-2.5 w-2.5" /> Bearish
-            </span>
-            <span className="text-[10px] text-primary/70">72% Bullish</span>
-          </div>
-        </div>
+      {/* Kayıt durumu — sahte veri yok, cihazın gerçek hâli */}
+      <div className="px-5 py-5 border-t border-paper/12">
+        <RecordingLamp />
       </div>
     </aside>
   );

@@ -7,66 +7,72 @@ interface SentimentFeedProps {
   logs: SentimentLog[];
 }
 
+/**
+ * Kayıt defteri. Cihazın etiketleri mono, dünyanın sözü serif —
+ * ölçülen ile ölçen ayrı seslerde.
+ */
 export function SentimentFeed({ logs }: SentimentFeedProps) {
   return (
-    <div className="rounded-2xl bg-surface-card border border-white/5 overflow-hidden h-full">
-      <div className="px-6 py-4 border-b border-white/5">
-        <h2 className="text-base font-bold text-text-primary">Sentiment Sinyalleri</h2>
-        <p className="text-xs text-text-secondary mt-0.5">FinBERT AI analizi</p>
+    <section className="flex h-full flex-col border border-ink/15 bg-paper/80">
+      <div className="flex items-baseline gap-4 border-b border-ink/12 px-4 py-2.5">
+        <h2 className="font-label text-[11px] font-700 uppercase tracking-[0.2em]">
+          Kayıt defteri
+        </h2>
+        <p className="ml-auto font-data text-[10px] text-ink-soft">
+          FinBERT okuması
+        </p>
       </div>
 
-      <div className="divide-y divide-white/4">
-        {logs.map((log) => {
-          const isPositive = log.score >= 0.3;
-          const isNegative = log.score <= -0.3;
+      {logs.length === 0 ? (
+        <p className="px-4 py-12 text-center font-data text-xs text-ink-soft">
+          Defter boş. İlk çevrim tamamlandığında okunan her başlık buraya
+          skoruyla birlikte düşer.
+        </p>
+      ) : (
+        <div className="flex-1">
+          {logs.map((log, i) => {
+            const positive = log.score >= 0.3;
+            const negative = log.score <= -0.3;
 
-          return (
-            <div
-              key={log.id}
-              className="flex items-start gap-3.5 px-6 py-3.5 hover:bg-white/2.5 transition-colors"
-            >
-              {/* Score indicator bar */}
-              <div className="mt-1.5 flex flex-col items-center gap-0.5 shrink-0">
-                <div
-                  className={cn(
-                    "h-2 w-2 rounded-full",
-                    isPositive ? "bg-primary shadow-[0_0_6px_rgba(16,185,129,0.6)]"
-                    : isNegative ? "bg-danger shadow-[0_0_6px_rgba(239,68,68,0.6)]"
-                    : "bg-warning shadow-[0_0_6px_rgba(245,158,11,0.5)]"
-                  )}
-                />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-text-primary leading-snug line-clamp-2">
-                  {log.headline}
-                </p>
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span className="text-[10px] text-text-secondary/70 font-medium">
-                    {log.source}
-                  </span>
-                  <span className="text-text-secondary/30 text-[10px]">·</span>
-                  <span
-                    className={cn(
-                      "text-[10px] font-extrabold tabular-nums",
-                      isPositive ? "text-primary" : isNegative ? "text-danger" : "text-warning"
-                    )}
-                  >
-                    {log.score > 0 ? "+" : ""}{log.score.toFixed(2)}
-                  </span>
-                  <span className="text-text-secondary/30 text-[10px]">·</span>
-                  <span className="text-[10px] text-text-secondary/60">
+            return (
+              <article
+                key={log.id}
+                className="feed-in border-b border-ink/8 px-4 py-3 last:border-b-0 hover:bg-grid-fine/40"
+                style={{ animationDelay: `${Math.min(i, 10) * 45}ms` }}
+              >
+                <div className="flex items-baseline gap-2.5">
+                  <time className="font-data text-[10px] tabular-nums text-ink-faint">
                     {new Date(log.timestamp).toLocaleTimeString("tr-TR", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
+                  </time>
+                  <span className="font-label text-[9px] font-600 uppercase tracking-[0.14em] text-ink-soft">
+                    {log.source}
+                  </span>
+                  <span
+                    className={cn(
+                      "ml-auto font-data text-[11px] tabular-nums",
+                      positive
+                        ? "text-trace-alt"
+                        : negative
+                          ? "text-trace"
+                          : "text-ink-soft"
+                    )}
+                  >
+                    {log.score > 0 ? "+" : ""}
+                    {log.score.toFixed(2)}
                   </span>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+
+                <p className="font-prose mt-1 text-[15px] leading-snug text-ink">
+                  {log.headline}
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }

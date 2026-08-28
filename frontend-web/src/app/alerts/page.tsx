@@ -41,21 +41,21 @@ function NewAlertModal({ assets, onClose, onCreated }: {
   const isSentiment = condition.startsWith("sentiment");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl mx-4" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50" onClick={onClose}>
+      <div className="bg-paper p-6 w-full max-w-md shadow-[3px_3px_0_var(--color-ink)] mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-text-primary">Yeni Alarm Oluştur</h2>
-          <button onClick={onClose} className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-black/5">
-            <X className="h-4 w-4 text-text-secondary" />
+          <h2 className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Yeni Alarm Oluştur</h2>
+          <button onClick={onClose} className="h-8 w-8 flex items-center justify-center hover:bg-ink/8">
+            <X className="h-4 w-4 text-ink-soft" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Varlık seçimi */}
           <div>
-            <label className="text-sm font-medium text-text-secondary block mb-1.5">Kripto Varlık</label>
+            <label className="text-sm font-medium text-ink-soft block mb-1.5">Kripto Varlık</label>
             <select value={symbol} onChange={(e) => setSymbol(e.target.value)}
-              className="w-full rounded-xl bg-bg-light py-3 px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 border-none">
+              className="w-full bg-paper py-3 px-4 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-trace-alt/30 border-none">
               {assets.map((a) => (
                 <option key={a.symbol} value={a.symbol}>{a.name} ({a.symbol})</option>
               ))}
@@ -64,9 +64,9 @@ function NewAlertModal({ assets, onClose, onCreated }: {
 
           {/* Koşul */}
           <div>
-            <label className="text-sm font-medium text-text-secondary block mb-1.5">Alarm Koşulu</label>
+            <label className="text-sm font-medium text-ink-soft block mb-1.5">Alarm Koşulu</label>
             <select value={condition} onChange={(e) => setCondition(e.target.value)}
-              className="w-full rounded-xl bg-bg-light py-3 px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 border-none">
+              className="w-full bg-paper py-3 px-4 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-trace-alt/30 border-none">
               <option value="sentiment_below">Sentiment skoru altına düşerse</option>
               <option value="sentiment_above">Sentiment skoru üzerine çıkarsa</option>
               <option value="price_below">Fiyat altına düşerse</option>
@@ -76,7 +76,7 @@ function NewAlertModal({ assets, onClose, onCreated }: {
 
           {/* Eşik */}
           <div>
-            <label className="text-sm font-medium text-text-secondary block mb-1.5">
+            <label className="text-sm font-medium text-ink-soft block mb-1.5">
               Eşik Değeri {isSentiment ? "(-1.0 ile +1.0 arası)" : "($ olarak)"}
             </label>
             <input
@@ -87,14 +87,14 @@ function NewAlertModal({ assets, onClose, onCreated }: {
               value={threshold}
               onChange={(e) => setThreshold(e.target.value)}
               placeholder={isSentiment ? "örn: -0.5" : "örn: 80000"}
-              className="w-full rounded-xl bg-bg-light py-3 px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 border-none"
+              className="w-full bg-paper py-3 px-4 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-trace-alt/30 border-none"
             />
           </div>
 
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-sm text-trace">{error}</p>}
 
           <button type="submit" disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-white hover:bg-primary-dark transition-colors disabled:opacity-60">
+            className="flex w-full items-center justify-center gap-2 border border-ink bg-ink px-4 py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] text-paper shadow-[3px_3px_0_var(--color-trace)] transition-all duration-150 hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-trace)] active:translate-y-0 active:shadow-[2px_2px_0_var(--color-trace)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bell className="h-4 w-4" />}
             Alarm Oluştur
           </button>
@@ -162,22 +162,22 @@ export default function AlertsPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-96"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex items-center justify-center h-96"><Loader2 className="h-8 w-8 animate-spin text-trace-alt" /></div>;
   }
 
   if (!isLoggedIn) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Alerts</h1>
-          <p className="text-sm text-text-secondary mt-1">Manage your price and sentiment alerts</p>
+          <h1 className="font-label text-[26px] font-700 uppercase leading-none tracking-[0.06em] text-ink">Alarmlar</h1>
+          <p className="text-sm text-ink-soft mt-1">Fiyat ve duygu eşiklerinizi buradan yönetin</p>
         </div>
-        <div className="rounded-2xl bg-surface-light border-2 border-dashed border-black/10 p-12 text-center">
-          <LogIn className="h-12 w-12 text-text-secondary/30 mx-auto mb-4" />
-          <p className="text-lg font-bold text-text-primary">Login required</p>
-          <p className="text-sm text-text-secondary mt-1">Please log in from Settings to manage your alerts.</p>
-          <Link href="/settings" className="inline-flex items-center gap-2 mt-4 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors">
-            <LogIn className="h-4 w-4" /> Go to Settings
+        <div className="bg-paper border-2 border-dashed border-ink/20 p-12 text-center">
+          <LogIn className="h-12 w-12 text-ink-soft/30 mx-auto mb-4" />
+          <p className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Giriş gerekli</p>
+          <p className="text-sm text-ink-soft mt-1">Alarmlarınızı yönetmek için Ayarlar sayfasından giriş yapın.</p>
+          <Link href="/settings" className="inline-flex items-center gap-2 border border-ink bg-ink px-4 py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] text-paper shadow-[3px_3px_0_var(--color-trace)] transition-all duration-150 hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-trace)] active:translate-y-0 active:shadow-[2px_2px_0_var(--color-trace)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
+            <LogIn className="h-4 w-4" /> Ayarlara git
           </Link>
         </div>
       </div>
@@ -191,20 +191,20 @@ export default function AlertsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Alerts</h1>
-            <p className="text-sm text-text-secondary mt-1">Manage your price and sentiment alerts</p>
+            <h1 className="font-label text-[26px] font-700 uppercase leading-none tracking-[0.06em] text-ink">Alarmlar</h1>
+            <p className="text-sm text-ink-soft mt-1">Fiyat ve duygu eşiklerinizi buradan yönetin</p>
           </div>
           <button onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors">
+            className="inline-flex items-center gap-2 border border-ink bg-ink px-4 py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] text-paper shadow-[3px_3px_0_var(--color-trace)] transition-all duration-150 hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-trace)] active:translate-y-0 active:shadow-[2px_2px_0_var(--color-trace)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
             <Plus className="h-4 w-4" /> New Alert
           </button>
         </div>
 
         {alerts.length === 0 ? (
-          <div className="rounded-2xl bg-surface-light border-2 border-dashed border-black/10 p-12 text-center">
-            <Bell className="h-12 w-12 text-text-secondary/30 mx-auto mb-4" />
-            <p className="text-lg font-bold text-text-primary">No alerts yet</p>
-            <p className="text-sm text-text-secondary mt-1">Click "New Alert" to get notified when conditions are met.</p>
+          <div className="bg-paper border-2 border-dashed border-ink/20 p-12 text-center">
+            <Bell className="h-12 w-12 text-ink-soft/30 mx-auto mb-4" />
+            <p className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Henüz alarm yok</p>
+            <p className="text-sm text-ink-soft mt-1">Click "New Alert" to get notified when conditions are met.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -212,28 +212,28 @@ export default function AlertsPage() {
               const assetName = assets.find((a) => a.id === alert.asset_id)?.name ?? `Asset #${alert.asset_id}`;
               const assetSymbol = assets.find((a) => a.id === alert.asset_id)?.symbol ?? "";
               return (
-                <div key={alert.id} className="flex items-center gap-4 rounded-2xl bg-surface-light border border-black/5 p-5 hover:shadow-sm transition-shadow">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-pastel-blue">
+                <div key={alert.id} className="flex items-center gap-4 bg-paper border border-ink/20 p-5 hover:shadow-sm transition-shadow">
+                  <div className="flex h-11 w-11 items-center justify-center bg-paper-deep">
                     <Bell className="h-5 w-5 text-blue-500" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-text-primary">{assetName} {assetSymbol && `(${assetSymbol})`}</p>
-                    <p className="text-xs text-text-secondary mt-0.5">{conditionLabel(alert.condition_type, alert.threshold)}</p>
+                    <p className="text-sm font-bold text-ink">{assetName} {assetSymbol && `(${assetSymbol})`}</p>
+                    <p className="text-xs text-ink-soft mt-0.5">{conditionLabel(alert.condition_type, alert.threshold)}</p>
                     {alert.last_triggered_at && (
-                      <p className="text-[10px] text-text-secondary mt-0.5">
+                      <p className="text-[10px] text-ink-soft mt-0.5">
                         Last: {new Date(alert.last_triggered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => handleToggle(alert)} title={alert.is_active ? "Pause" : "Activate"} className="text-text-secondary hover:text-primary transition-colors">
-                      {alert.is_active ? <ToggleRight className="h-6 w-6 text-primary" /> : <ToggleLeft className="h-6 w-6" />}
+                    <button onClick={() => handleToggle(alert)} title={alert.is_active ? "Pause" : "Activate"} className="text-ink-soft hover:text-trace-alt transition-colors">
+                      {alert.is_active ? <ToggleRight className="h-6 w-6 text-trace-alt" /> : <ToggleLeft className="h-6 w-6" />}
                     </button>
-                    <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${alert.is_active ? "bg-pastel-green text-primary" : "bg-black/5 text-text-secondary"}`}>
+                    <span className={`inline-block border px-2 py-0.5 font-data text-[10px] ${alert.is_active ? "bg-paper-deep text-trace-alt" : "bg-ink/8 text-ink-soft"}`}>
                       {alert.is_active ? "Active" : "Paused"}
                     </span>
-                    <button onClick={() => handleDelete(alert.id)} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-pastel-red transition-colors">
-                      <Trash2 className="h-4 w-4 text-text-secondary hover:text-danger" />
+                    <button onClick={() => handleDelete(alert.id)} className="flex h-8 w-8 items-center justify-center hover:bg-paper-deep transition-colors">
+                      <Trash2 className="h-4 w-4 text-ink-soft hover:text-trace" />
                     </button>
                   </div>
                 </div>
