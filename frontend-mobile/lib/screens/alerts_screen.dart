@@ -158,7 +158,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
+                                backgroundColor: AppColors.ink,
                                 foregroundColor: AppColors.paper,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 14),
@@ -193,9 +193,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
             padding: const EdgeInsets.all(20),
             children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                const Text('Alarmlar',
+                const Text('ALARMLAR',
                     style: TextStyle(
-                        fontSize: 26,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary)),
                 if (_auth.isLoggedIn)
@@ -221,7 +221,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   ),
               ]),
               const SizedBox(height: 4),
-              const Text('Fiyat ve duygu alarmlarınızı yönetin',
+              const Text('Fiyat ve duygu eşikleriniz',
                   style:
                       TextStyle(fontSize: 14, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
@@ -294,10 +294,11 @@ class _LoginPrompt extends StatelessWidget {
           Icon(Icons.lock_outline,
               size: 48, color: AppColors.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 12),
-          const Text('Giriş gerekli',
+          const Text('GİRİŞ GEREKLİ',
               style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 2.4,
                   color: AppColors.textPrimary)),
           const SizedBox(height: 6),
           const Text('Alarmları yönetmek için giriş yapın',
@@ -308,7 +309,7 @@ class _LoginPrompt extends StatelessWidget {
             icon: const Icon(Icons.login, size: 18),
             label: const Text('Giriş Yap'),
             style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.ink,
                 foregroundColor: AppColors.paper,
                 shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.zero)),
