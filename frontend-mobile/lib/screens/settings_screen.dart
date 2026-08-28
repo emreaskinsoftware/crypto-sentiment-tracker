@@ -13,7 +13,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (context, _) {
         final auth = AuthService.instance;
         return Scaffold(
-          backgroundColor: AppColors.bgLight,
+          backgroundColor: Colors.transparent,
           body: CustomScrollView(
             slivers: [
               // ── App Bar ───────────────────────────────────────────────────
@@ -38,11 +38,11 @@ class SettingsScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             const Text('Ayarlar',
-                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
+                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.paper)),
                             const SizedBox(height: 4),
                             Text(
                               auth.isLoggedIn ? auth.email ?? '' : 'Hesabınıza giriş yapın',
-                              style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
+                              style: const TextStyle(fontSize: 13, color: AppColors.inkFaint),
                             ),
                             const SizedBox(height: 16),
                           ],
@@ -57,10 +57,10 @@ class SettingsScreen extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(right: 16),
                           child: CircleAvatar(
-                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            backgroundColor: AppColors.inkFaint,
                             child: Text(
                               (auth.email ?? 'U')[0].toUpperCase(),
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+                              style: const TextStyle(color: AppColors.paper, fontWeight: FontWeight.w800),
                             ),
                           ),
                         ),
@@ -80,11 +80,11 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 14),
 
                     // ── Güvenlik ────────────────────────────────────────────
-                    _InfoCard(
+                    const _InfoCard(
                       icon: Icons.shield_rounded,
-                      color: const Color(0xFF8B5CF6),
+                      color: Color(0xFF8B5CF6),
                       title: 'Güvenlik',
-                      items: const [
+                      items: [
                         'Şifreler bcrypt ile güvenli şekilde şifrelenir',
                         'JWT token 60 dakikada otomatik sona erer',
                         'Tüm API istekleri HTTPS üzerinden iletilir',
@@ -108,11 +108,11 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 14),
 
                     // ── Uygulama Hakkında ───────────────────────────────────
-                    _InfoCard(
+                    const _InfoCard(
                       icon: Icons.info_rounded,
                       color: AppColors.textSecondary,
                       title: 'Uygulama Hakkında',
-                      items: const [
+                      items: [
                         'CryptoSentiment Tracker v1.0',
                         'FinBERT NLP ile gerçek zamanlı duygu analizi',
                         'Binance API • RSS Haber Akışı • Reddit',
@@ -139,8 +139,8 @@ class _LoggedInCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.zero,
+        boxShadow: [BoxShadow(color: AppColors.ink.withValues(alpha: 0.5), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(children: [
         // Profil bilgisi
@@ -149,14 +149,14 @@ class _LoggedInCard extends StatelessWidget {
           child: Row(children: [
             Container(
               width: 56, height: 56,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
-                borderRadius: BorderRadius.circular(16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
+                borderRadius: BorderRadius.zero,
               ),
               alignment: Alignment.center,
               child: Text(
                 (auth.email ?? 'U')[0].toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+                style: const TextStyle(color: AppColors.paper, fontSize: 22, fontWeight: FontWeight.w900),
               ),
             ),
             const SizedBox(width: 14),
@@ -167,7 +167,7 @@ class _LoggedInCard extends StatelessWidget {
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: AppColors.pastelGreen, borderRadius: BorderRadius.circular(6)),
+                decoration: const BoxDecoration(color: AppColors.pastelGreen, borderRadius: BorderRadius.zero),
                 child: const Text('Aktif', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.primary)),
               ),
             ])),
@@ -185,7 +185,7 @@ class _LoggedInCard extends StatelessWidget {
             child: Row(children: [
               Container(
                 width: 36, height: 36,
-                decoration: BoxDecoration(color: AppColors.pastelRed, borderRadius: BorderRadius.circular(10)),
+                decoration: const BoxDecoration(color: AppColors.pastelRed, borderRadius: BorderRadius.zero),
                 alignment: Alignment.center,
                 child: const Icon(Icons.logout_rounded, color: AppColors.danger, size: 18),
               ),
@@ -208,14 +208,14 @@ class _LoginCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.zero,
+        boxShadow: [BoxShadow(color: AppColors.ink.withValues(alpha: 0.5), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(
             width: 36, height: 36,
-            decoration: BoxDecoration(color: AppColors.pastelGreen, borderRadius: BorderRadius.circular(10)),
+            decoration: const BoxDecoration(color: AppColors.pastelGreen, borderRadius: BorderRadius.zero),
             alignment: Alignment.center,
             child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 18),
           ),
@@ -245,14 +245,14 @@ class _InfoCard extends StatelessWidget {
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
       color: AppColors.surfaceLight,
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+      borderRadius: BorderRadius.zero,
+      boxShadow: [BoxShadow(color: AppColors.ink.withValues(alpha: 0.5), blurRadius: 12, offset: const Offset(0, 4))],
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Container(
           width: 36, height: 36,
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.zero),
           alignment: Alignment.center,
           child: Icon(icon, color: color, size: 18),
         ),
@@ -269,7 +269,7 @@ class _InfoCard extends StatelessWidget {
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(item, style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4))),
+          Expanded(child: Text(item, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4))),
         ]),
       )),
     ]),

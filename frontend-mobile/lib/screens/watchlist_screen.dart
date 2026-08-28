@@ -92,14 +92,14 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
           maxChildSize: 0.92,
           builder: (ctx, scroll) => Container(
             decoration: const BoxDecoration(
-              color: Color(0xFF141B2A),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              color: AppColors.paper,
+              borderRadius: BorderRadius.zero,
             ),
             child: Column(children: [
               // Handle
               const SizedBox(height: 12),
               Center(child: Container(width: 36, height: 4,
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+                  decoration: const BoxDecoration(color: AppColors.inkFaint, borderRadius: BorderRadius.zero))),
               const SizedBox(height: 16),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -117,8 +117,8 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.gridFine.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.zero,
                     border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -138,13 +138,13 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                                 color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 13),
                             isDense: true,
                             filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: AppColors.primary)),
+                            fillColor: AppColors.gridFine.withValues(alpha: 0.5),
+                            border: const OutlineInputBorder(borderRadius: BorderRadius.zero,
+                                borderSide: BorderSide(color: AppColors.borderSubtle)),
+                            enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero,
+                                borderSide: BorderSide(color: AppColors.borderSubtle)),
+                            focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero,
+                                borderSide: BorderSide(color: AppColors.primary)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
                           onSubmitted: (_) async {
@@ -177,14 +177,14 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.zero,
                           ),
                           child: customLoading
                               ? const SizedBox(width: 16, height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.paper))
+                              : const Icon(Icons.add_rounded, color: AppColors.paper, size: 18),
                         ),
                       ),
                     ]),
@@ -230,16 +230,16 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                             margin: const EdgeInsets.only(bottom: 8),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.04),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                              color: AppColors.gridFine.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.zero,
+                              border: Border.all(color: AppColors.gridFine.withValues(alpha: 0.5)),
                             ),
                             child: Row(children: [
                               Container(
                                 width: 36, height: 36,
                                 decoration: BoxDecoration(
                                   color: AppColors.primary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.zero,
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(sym.length > 3 ? sym.substring(0, 3) : sym,
@@ -268,12 +268,12 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.zero,
                                   ),
                                   child: const Text('Ekle',
-                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.paper)),
                                 ),
                               ),
                             ]),
@@ -301,12 +301,16 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final avgSentiment = _watchlist.isEmpty
+    // Yalnızca ölçülmüş kanallar ortalamaya girer.
+    final measured =
+        _watchlist.where((a) => a.sentimentScore != null).toList();
+    final avgSentiment = measured.isEmpty
         ? 0.0
-        : _watchlist.fold<double>(0, (s, a) => s + a.sentimentScore) /
-            _watchlist.length;
+        : measured.fold<double>(0, (s, a) => s + a.sentimentScore!) /
+            measured.length;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
@@ -328,19 +332,19 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.zero,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(!_auth.isLoggedIn ? Icons.login : Icons.add,
-                              color: Colors.white, size: 18),
+                              color: AppColors.paper, size: 18),
                           const SizedBox(width: 4),
                           Text(!_auth.isLoggedIn ? 'Login' : 'Add',
                               style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.paper,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700)),
                         ],
@@ -362,7 +366,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
                     color: AppColors.pastelGreen,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.zero,
                     border: Border.all(
                         color: AppColors.primary.withValues(alpha: 0.1)),
                   ),
@@ -394,9 +398,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceLight,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.zero,
                     border:
-                        Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                        Border.all(color: AppColors.ink.withValues(alpha: 0.5)),
                   ),
                   child: Column(
                     children: [
@@ -421,9 +425,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                         label: const Text('Log In'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                          foregroundColor: AppColors.paper,
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero),
                         ),
                       ),
                     ],
@@ -435,9 +439,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   padding: const EdgeInsets.all(40),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceLight,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.zero,
                     border:
-                        Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                        Border.all(color: AppColors.ink.withValues(alpha: 0.5)),
                   ),
                   child: Column(
                     children: [
@@ -463,7 +467,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
                         color: AppColors.danger,
-                        child: const Icon(Icons.delete, color: Colors.white),
+                        child: const Icon(Icons.delete, color: AppColors.paper),
                       ),
                       child: CryptoCard(
                         asset: asset,

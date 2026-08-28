@@ -5,6 +5,8 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/crypto_card.dart';
+import '../widgets/pen_trace.dart';
+import '../widgets/paper.dart';
 import 'crypto_detail_screen.dart';
 
 // ── Pipeline stage ────────────────────────────────────────────────────────────
@@ -47,6 +49,43 @@ _Stage _stageFromElapsed(int s) {
 // ── Refresh kinds ─────────────────────────────────────────────────────────────
 enum _RefreshKind { idle, running, cooldown, done, error, unauthenticated }
 
+class _LampLabel extends StatelessWidget {
+  const _LampLabel();
+  @override
+  Widget build(BuildContext context) => Text('KAYITTA',
+      style: AppType.label(size: 9, weight: FontWeight.w600,
+          color: AppColors.inkSoft, tracking: 0.2));
+}
+
+class _ReadoutDivider extends StatelessWidget {
+  const _ReadoutDivider();
+  @override
+  Widget build(BuildContext context) =>
+      Container(width: 1, height: 40, color: AppColors.borderSubtle);
+}
+
+class _Readout extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  const _Readout({required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label.toUpperCase(),
+                style: AppType.label(size: 8, weight: FontWeight.w600,
+                    color: AppColors.inkSoft, tracking: 0.18)),
+            const SizedBox(height: 3),
+            Text(value,
+                style: AppType.data(size: 17, weight: FontWeight.w500, color: color)),
+          ]),
+        ),
+      );
+}
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 class RadarScreen extends StatefulWidget {
   const RadarScreen({super.key});
@@ -57,6 +96,12 @@ class RadarScreen extends StatefulWidget {
 class _RadarScreenState extends State<RadarScreen> {
   List<CryptoAsset>  _assets = [];
   List<SentimentLog> _logs   = [];
+
+  // Şerit kaydı — taşıyıcı kanalın iki kanallı izi
+  List<TracePoint> _trace = [];
+  String _traceSymbol = '';
+  String _traceName = '';
+  String _traceWindow = '24h';
   bool   _loading = true;
   String? _error;
 
@@ -138,10 +183,57 @@ class _RadarScreenState extends State<RadarScreen> {
         _logs    = results[1] as List<SentimentLog>;
         _loading = false;
       });
+
+      await _loadTrace(updated);
     } catch (_) {
       if (!mounted) return;
       setState(() { _error = 'Bağlantı hatası'; _loading = false; });
     }
+  }
+
+  /// Taşıyıcı kanalın şeridini çeker.
+  /// market_cap Binance public API'de her zaman 0 geldiği için sıralama
+  /// ölçütü hacim; BTC varsa referans kanal olarak öncelikli.
+  Future<void> _loadTrace(List<CryptoAsset> assets) async {
+    if (assets.isEmpty) return;
+    final lead = assets.firstWhere((a) => a.symbol == 'BTC',
+        orElse: () => ([...assets]
+              ..sort((a, b) => b.volume24h.compareTo(a.volume24h)))
+            .first);
+
+    int scoredIn(Map<String, dynamic>? c) =>
+        ((c?['data'] as List?) ?? [])
+            .where((p) => (p as Map)['sentiment_score'] != null)
+            .length;
+
+    var window = '24h';
+    var chart = await ApiService.fetchChartData(lead.symbol, timeframe: '24h');
+    // 24 saatte yeterli örnek yoksa pencereyi 7 güne aç — cihaz seyrek
+    // çalıştığında şerit iki noktalık düz bir çizgiye düşmesin.
+    if (scoredIn(chart) < 6) {
+      final wider =
+          await ApiService.fetchChartData(lead.symbol, timeframe: '7d');
+      if (scoredIn(wider) > scoredIn(chart)) {
+        chart = wider;
+        window = '7d';
+      }
+    }
+    if (!mounted) return;
+
+    final raw = (chart?['data'] as List?) ?? [];
+    setState(() {
+      _traceSymbol = lead.symbol;
+      _traceName = lead.name;
+      _traceWindow = window;
+      _trace = raw.map((e) {
+        final m = e as Map<String, dynamic>;
+        return TracePoint(
+          t: DateTime.parse(m['timestamp'] as String),
+          sentiment: (m['sentiment_score'] as num?)?.toDouble(),
+          price: (m['price'] as num).toDouble(),
+        );
+      }).toList();
+    });
   }
 
   // ── Pipeline trigger ────────────────────────────────────────────────────────
@@ -235,13 +327,13 @@ class _RadarScreenState extends State<RadarScreen> {
   Widget build(BuildContext context) {
     if (_loading && _assets.isEmpty) {
       return const Scaffold(
-        backgroundColor: AppColors.bgLight,
+        backgroundColor: Colors.transparent,
         body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
       );
     }
     if (_error != null && _assets.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.bgLight,
+        backgroundColor: Colors.transparent,
         body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.wifi_off_rounded, size: 56, color: AppColors.textSecondary),
           const SizedBox(height: 14),
@@ -256,18 +348,22 @@ class _RadarScreenState extends State<RadarScreen> {
       );
     }
 
-    final avg = _assets.isEmpty
+    // Ölçülmemiş kanallar ortalamaya 0 olarak girerse ortalama sıfıra
+    // çekilir; yalnızca gerçekten ölçülenler hesaba katılır.
+    final measured = _assets.where((a) => a.sentimentScore != null).toList();
+    final avg = measured.isEmpty
         ? 0.0
-        : _assets.fold<double>(0, (s, a) => s + a.sentimentScore) / _assets.length;
-    final bullish = _assets.where((a) => a.sentimentScore >= 0.3).length;
-    final bearish = _assets.where((a) => a.sentimentScore <= -0.3).length;
+        : measured.fold<double>(0, (s, a) => s + a.sentimentScore!) /
+            measured.length;
+    final bullish = measured.where((a) => a.sentimentScore! >= 0.3).length;
+    final bearish = measured.where((a) => a.sentimentScore! <= -0.3).length;
 
     final sorted = [..._assets]..sort((a, b) => b.change24h.abs().compareTo(a.change24h.abs()));
     final gainers = sorted.where((a) => a.change24h > 0).take(3).toList();
     final losers  = sorted.where((a) => a.change24h < 0).take(3).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.bgLight,
+      backgroundColor: Colors.transparent,
       body: Stack(children: [
         RefreshIndicator(
           onRefresh: _triggerRefresh,
@@ -276,6 +372,20 @@ class _RadarScreenState extends State<RadarScreen> {
           child: CustomScrollView(slivers: [
             // Header
             SliverToBoxAdapter(child: _buildHeader(context, avg, bullish, bearish)),
+
+            // İMZA — iki kanallı şerit kaydı
+            if (_traceSymbol.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                sliver: SliverToBoxAdapter(
+                  child: PenTrace(
+                    symbol: _traceSymbol,
+                    name: _traceName,
+                    points: _trace,
+                    window: _traceWindow,
+                  ),
+                ),
+              ),
 
             // Top Movers
             if (gainers.isNotEmpty || losers.isNotEmpty)
@@ -288,13 +398,11 @@ class _RadarScreenState extends State<RadarScreen> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               sliver: SliverToBoxAdapter(
-                child: Row(children: [
-                  const Text('Piyasalar',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                  const Spacer(),
-                  Text('${_assets.length} varlık',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                ]),
+                child: PaperPanel(
+                  child: PanelHeader(
+                      title: 'Varlık defteri',
+                      note: "${_assets.length} kanal · fiyat 30sn'de bir"),
+                ),
               ),
             ),
             SliverPadding(
@@ -313,24 +421,13 @@ class _RadarScreenState extends State<RadarScreen> {
 
             // Sentiment feed
             if (_logs.isNotEmpty) ...[
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
                 sliver: SliverToBoxAdapter(
-                  child: Row(children: [
-                    const Text('Son Haberler',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.pastelGreen,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                      ),
-                      child: const Text('FinBERT AI',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                    ),
-                  ]),
+                  child: PaperPanel(
+                    child: PanelHeader(
+                        title: 'Kayıt defteri', note: 'FinBERT okuması'),
+                  ),
                 ),
               ),
               SliverPadding(
@@ -361,43 +458,56 @@ class _RadarScreenState extends State<RadarScreen> {
   Widget _buildHeader(BuildContext ctx, double avg, int bullish, int bearish) {
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: AppColors.paperDeep,
         border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
       ),
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(ctx).padding.top + 16, 20, 20),
+      padding: EdgeInsets.fromLTRB(16, MediaQuery.of(ctx).padding.top + 14, 16, 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Container(width: 7, height: 7,
-                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
-              const SizedBox(width: 6),
-              const Text('LIVE DASHBOARD',
-                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                      color: AppColors.primary, letterSpacing: 1.5)),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Row(children: [
+                RecordingLamp(),
+                SizedBox(width: 6),
+                _LampLabel(),
+              ]),
+              const SizedBox(height: 8),
+              Text('KAYIT ŞERİDİ',
+                  style: AppType.label(size: 22, weight: FontWeight.w700, tracking: 0.06)),
+              const SizedBox(height: 6),
+              Text('Haber duygusu ve fiyat, aynı zaman ekseninde.',
+                  style: AppType.data(size: 11, color: AppColors.inkSoft)),
             ]),
-            const SizedBox(height: 4),
-            const Text('Market Overview',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
-            const SizedBox(height: 2),
-            const Text('Gerçek zamanlı kripto sentiment radarı',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          ])),
+          ),
+          const SizedBox(width: 10),
           _RefreshButton(kind: _kind, cooldown: _cooldownRemaining, onTap: _triggerRefresh),
         ]),
-        const SizedBox(height: 16),
-        Row(children: [
-          _HeaderChip(label: 'Avg Sentiment',
+        const SizedBox(height: 14),
+        // Okuma bandı — kart değil, hairline ile ayrılmış üç okuma
+        Container(
+          decoration: BoxDecoration(border: Border.all(color: AppColors.borderSubtle)),
+          child: Row(children: [
+            _Readout(
+              label: 'Ortalama duygu',
               value: '${avg >= 0 ? '+' : ''}${avg.toStringAsFixed(2)}',
-              color: avg >= 0.15 ? AppColors.primary : avg <= -0.15 ? AppColors.danger : AppColors.warning,
-              icon: Icons.psychology_rounded),
-          const SizedBox(width: 8),
-          _HeaderChip(label: 'Yükseliş', value: '$bullish/${_assets.length}',
-              color: AppColors.primary, icon: Icons.trending_up_rounded),
-          const SizedBox(width: 8),
-          _HeaderChip(label: 'Düşüş', value: '$bearish/${_assets.length}',
-              color: AppColors.danger, icon: Icons.trending_down_rounded),
-        ]),
+              color: avg >= 0.3
+                  ? AppColors.traceAlt
+                  : avg <= -0.3
+                      ? AppColors.trace
+                      : AppColors.ink,
+            ),
+            const _ReadoutDivider(),
+            _Readout(
+                label: 'Pozitif kanal',
+                value: '$bullish/${_assets.length}',
+                color: AppColors.ink),
+            const _ReadoutDivider(),
+            _Readout(
+                label: 'Negatif kanal',
+                value: '$bearish/${_assets.length}',
+                color: AppColors.ink),
+          ]),
+        ),
       ]),
     );
   }
@@ -407,7 +517,7 @@ class _RadarScreenState extends State<RadarScreen> {
     if (_kind == _RefreshKind.done) return _DonePanel();
 
     if (_kind == _RefreshKind.unauthenticated) {
-      return _StatusBanner(
+      return const _StatusBanner(
         color: AppColors.warning,
         icon: Icons.lock_outline_rounded,
         title: 'Giriş Gerekli',
@@ -444,65 +554,48 @@ class _RefreshButton extends StatelessWidget {
   final _RefreshKind kind;
   final int cooldown;
   final VoidCallback onTap;
-  const _RefreshButton({required this.kind, required this.cooldown, required this.onTap});
+  const _RefreshButton(
+      {required this.kind, required this.cooldown, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final bool disabled = kind == _RefreshKind.running || kind == _RefreshKind.cooldown;
-
-    Color bg, border, textColor;
-    Widget icon;
-    String label;
-
-    switch (kind) {
-      case _RefreshKind.running:
-        bg = const Color(0xFF1E3A4A); border = Colors.blue.withValues(alpha: 0.3);
-        textColor = Colors.blue;
-        icon = const SizedBox(width: 14, height: 14,
-            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.blue));
-        label = 'Analiz…';
-      case _RefreshKind.cooldown:
-        final m = cooldown ~/ 60; final s = cooldown % 60;
-        bg = AppColors.warning.withValues(alpha: 0.1); border = AppColors.warning.withValues(alpha: 0.3);
-        textColor = AppColors.warning;
-        icon = Icon(Icons.timer_outlined, color: AppColors.warning, size: 16);
-        label = m > 0 ? '${m}dk ${s}sn' : '${s}sn';
-      case _RefreshKind.done:
-        bg = AppColors.primary.withValues(alpha: 0.1); border = AppColors.primary.withValues(alpha: 0.3);
-        textColor = AppColors.primary;
-        icon = Icon(Icons.check_circle_outline_rounded, color: AppColors.primary, size: 16);
-        label = 'Güncellendi';
-      case _RefreshKind.unauthenticated:
-        bg = Colors.white.withValues(alpha: 0.05); border = Colors.white.withValues(alpha: 0.1);
-        textColor = AppColors.textSecondary;
-        icon = Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary, size: 16);
-        label = 'Giriş Gerekli';
-      case _RefreshKind.error:
-        bg = AppColors.danger.withValues(alpha: 0.1); border = AppColors.danger.withValues(alpha: 0.3);
-        textColor = AppColors.danger;
-        icon = Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 16);
-        label = 'Hata';
-      case _RefreshKind.idle:
-        bg = AppColors.primary.withValues(alpha: 0.1); border = AppColors.primary.withValues(alpha: 0.3);
-        textColor = AppColors.primary;
-        icon = Icon(Icons.refresh_rounded, color: AppColors.primary, size: 16);
-        label = 'Yenile';
-    }
+    // Eylem adı akış boyunca aynı kalır: al → alınıyor → alındı
+    final (String label, bool enabled) = switch (kind) {
+      _RefreshKind.idle => ('Yeni örnek al', true),
+      _RefreshKind.running => ('Örnek alınıyor', false),
+      _RefreshKind.cooldown => (
+          cooldown ~/ 60 > 0
+              ? 'Sonraki ${cooldown ~/ 60}dk ${cooldown % 60}sn'
+              : 'Sonraki ${cooldown % 60}sn',
+          false
+        ),
+      _RefreshKind.done => ('Örnek alındı', false),
+      _RefreshKind.unauthenticated => ('Giriş gerekli', false),
+      _RefreshKind.error => ('Alınamadı', false),
+    };
 
     return GestureDetector(
-      onTap: disabled ? null : onTap,
+      onTap: enabled ? onTap : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: border),
+          color: enabled ? AppColors.ink : AppColors.paper,
+          border: Border.all(
+              color: enabled ? AppColors.ink : AppColors.borderSubtle),
+          // Basılı kontrol hissi: kalem kırmızısı gölge
+          boxShadow: enabled
+              ? const [BoxShadow(color: AppColors.trace, offset: Offset(3, 3))]
+              : null,
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          icon,
-          const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textColor)),
-        ]),
+        child: Text(
+          label.toUpperCase(),
+          style: AppType.label(
+            size: 10,
+            weight: FontWeight.w600,
+            color: enabled ? AppColors.paper : AppColors.inkSoft,
+            tracking: 0.16,
+          ),
+        ),
       ),
     );
   }
@@ -516,20 +609,22 @@ class _TopMovers extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Row(children: [
-        Text('Top Movers',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-        Spacer(),
-        Text('24s', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-      ]),
-      const SizedBox(height: 10),
-      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Expanded(child: _MoverColumn(title: 'Yükseliş', color: AppColors.primary,
-            icon: Icons.trending_up_rounded, assets: gainers)),
-        const SizedBox(width: 10),
-        Expanded(child: _MoverColumn(title: 'Düşüş', color: AppColors.danger,
-            icon: Icons.trending_down_rounded, assets: losers)),
-      ]),
+      PaperPanel(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const PanelHeader(title: 'Uç değerler', note: 'son 24 saat'),
+          IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Expanded(
+                  child: _MoverColumn(
+                      title: 'Yükselen', color: AppColors.traceAlt, assets: gainers)),
+              Container(width: 1, color: AppColors.borderSubtle),
+              Expanded(
+                  child: _MoverColumn(
+                      title: 'Düşen', color: AppColors.trace, assets: losers)),
+            ]),
+          ),
+        ]),
+      ),
     ]);
   }
 }
@@ -537,49 +632,52 @@ class _TopMovers extends StatelessWidget {
 class _MoverColumn extends StatelessWidget {
   final String title;
   final Color color;
-  final IconData icon;
   final List<CryptoAsset> assets;
-  const _MoverColumn({required this.title, required this.color, required this.icon, required this.assets});
+  const _MoverColumn(
+      {required this.title, required this.color, required this.assets});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+        child: Text(title.toUpperCase(),
+            style: AppType.label(
+                size: 9, weight: FontWeight.w600,
+                color: AppColors.inkSoft, tracking: 0.18)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(width: 24, height: 24,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(7)),
-              child: Icon(icon, color: color, size: 14)),
-          const SizedBox(width: 6),
-          Text(title, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
-        ]),
-        const SizedBox(height: 8),
-        ...assets.map((a) => Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(children: [
-            Container(width: 28, height: 28,
-                decoration: BoxDecoration(color: a.symbolColor, borderRadius: BorderRadius.circular(8)),
-                alignment: Alignment.center,
-                child: Text(a.symbol.length > 3 ? a.symbol.substring(0, 3) : a.symbol,
-                    style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900))),
-            const SizedBox(width: 7),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(a.name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                  overflow: TextOverflow.ellipsis),
-              Text('\$${a.price >= 1 ? a.price.toStringAsFixed(2) : a.price.toStringAsFixed(4)}',
-                  style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
-            ])),
-            Text('${a.change24h >= 0 ? '+' : ''}${a.change24h.toStringAsFixed(2)}%',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
-          ]),
-        )),
-      ]),
-    );
+      if (assets.isEmpty)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+          child: Text('bu yönde hareket yok',
+              style: AppType.data(size: 10, color: AppColors.inkFaint)),
+        )
+      else
+        ...assets.map((a) => Container(
+              padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(a.symbol,
+                            style: AppType.data(
+                                size: 12, weight: FontWeight.w500)),
+                        Text(
+                            '\$${a.price >= 1 ? a.price.toStringAsFixed(2) : a.price.toStringAsFixed(4)}',
+                            style: AppType.data(
+                                size: 9, color: AppColors.inkFaint)),
+                      ]),
+                ),
+                Text(
+                    '${a.change24h >= 0 ? '+' : ''}${a.change24h.toStringAsFixed(2)}%',
+                    style: AppType.data(size: 11, color: color)),
+              ]),
+            )),
+    ]);
   }
 }
 
@@ -597,7 +695,7 @@ class _PipelinePanel extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.zero,
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
         boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.08), blurRadius: 24)],
       ),
@@ -605,7 +703,7 @@ class _PipelinePanel extends StatelessWidget {
         Row(children: [
           Container(width: 28, height: 28,
               decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.zero),
               child: const Center(child: SizedBox(width: 14, height: 14,
                   child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)))),
           const SizedBox(width: 10),
@@ -616,9 +714,9 @@ class _PipelinePanel extends StatelessWidget {
         ]),
         const SizedBox(height: 10),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.zero,
           child: LinearProgressIndicator(value: progress, minHeight: 4,
-              backgroundColor: Colors.white.withValues(alpha: 0.05),
+              backgroundColor: AppColors.gridFine.withValues(alpha: 0.5),
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary)),
         ),
         const SizedBox(height: 12),
@@ -633,8 +731,8 @@ class _PipelinePanel extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDone || isActive
                         ? AppColors.primary.withValues(alpha: isActive ? 0.25 : 0.15)
-                        : Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(9),
+                        : AppColors.gridFine.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.zero,
                     border: isActive ? Border.all(color: AppColors.primary.withValues(alpha: 0.4)) : null,
                   ),
                   child: Icon(isDone ? Icons.check_circle_rounded : s.icon, color: color, size: 16)),
@@ -658,7 +756,7 @@ class _DonePanel extends StatelessWidget {
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: AppColors.surfaceCard,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.zero,
       border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.12), blurRadius: 24)],
     ),
@@ -666,7 +764,7 @@ class _DonePanel extends StatelessWidget {
       Row(children: [
         Container(width: 36, height: 36,
             decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.zero),
             child: const Icon(Icons.celebration_rounded, color: AppColors.primary, size: 18)),
         const SizedBox(width: 10),
         const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -678,9 +776,9 @@ class _DonePanel extends StatelessWidget {
         const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
       ]),
       const SizedBox(height: 10),
-      ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: const LinearProgressIndicator(value: 1.0, minHeight: 4,
+      const ClipRRect(
+        borderRadius: BorderRadius.zero,
+        child: LinearProgressIndicator(value: 1.0, minHeight: 4,
             backgroundColor: Colors.transparent,
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
       ),
@@ -700,7 +798,7 @@ class _StatusBanner extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     decoration: BoxDecoration(
       color: AppColors.surfaceCard,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.zero,
       border: Border.all(color: color.withValues(alpha: 0.25)),
     ),
     child: Row(children: [
@@ -715,34 +813,6 @@ class _StatusBanner extends StatelessWidget {
 }
 
 // ── Header Chip ───────────────────────────────────────────────────────────────
-class _HeaderChip extends StatelessWidget {
-  final String label, value;
-  final Color color;
-  final IconData icon;
-  const _HeaderChip({required this.label, required this.value, required this.color, required this.icon});
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(icon, size: 11, color: color.withValues(alpha: 0.8)),
-          const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 9, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w700)),
-        ]),
-        const SizedBox(height: 4),
-        Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: color)),
-      ]),
-    ),
-  );
-}
-
 // ── Sentiment Tile ────────────────────────────────────────────────────────────
 class _SentimentTile extends StatelessWidget {
   final SentimentLog log;
@@ -759,12 +829,12 @@ class _SentimentTile extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
         border: Border(left: BorderSide(color: color, width: 3)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(width: 38, height: 38,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.zero),
             alignment: Alignment.center,
             child: Text('${log.score >= 0 ? '+' : ''}${log.score.toStringAsFixed(1)}',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: color))),

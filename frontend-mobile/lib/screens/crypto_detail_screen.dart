@@ -98,10 +98,10 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
         title: Row(children: [
           Container(
             width: 32, height: 32,
-            decoration: BoxDecoration(color: asset.symbolColor, borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: asset.symbolColor, borderRadius: BorderRadius.zero),
             alignment: Alignment.center,
             child: Text(asset.symbol.length > 3 ? asset.symbol.substring(0, 3) : asset.symbol,
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                style: const TextStyle(color: AppColors.paper, fontSize: 10, fontWeight: FontWeight.w800)),
           ),
           const SizedBox(width: 10),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -126,7 +126,7 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: AppColors.surfaceCard,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.zero,
                       border: Border.all(color: AppColors.borderSubtle),
                     ),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -144,7 +144,7 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: changeColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.zero,
                             border: Border.all(color: changeColor.withValues(alpha: 0.2)),
                           ),
                           child: Text(
@@ -166,12 +166,12 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                               decoration: BoxDecoration(
                                 color: _timeframe == tf
                                     ? AppColors.primary.withValues(alpha: 0.15)
-                                    : Colors.white.withValues(alpha: 0.04),
-                                borderRadius: BorderRadius.circular(8),
+                                    : AppColors.gridFine.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.zero,
                                 border: Border.all(
                                   color: _timeframe == tf
                                       ? AppColors.primary.withValues(alpha: 0.3)
-                                      : Colors.white.withValues(alpha: 0.08),
+                                      : AppColors.gridFine.withValues(alpha: 0.5),
                                 ),
                               ),
                               child: Text(tf,
@@ -199,7 +199,7 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                               horizontalInterval: (_maxY - _minY) / 4,
                               drawVerticalLine: false,
                               getDrawingHorizontalLine: (_) => FlLine(
-                                color: Colors.white.withValues(alpha: 0.04), strokeWidth: 1),
+                                color: AppColors.gridFine.withValues(alpha: 0.5), strokeWidth: 1),
                             ),
                             titlesData: const FlTitlesData(show: false),
                             borderData: FlBorderData(show: false),
@@ -238,7 +238,7 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                       // ── Sentiment Trend ──────────────────────────────────
                       if (_sentimentSpots.length > 1) ...[
                         const SizedBox(height: 16),
-                        Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+                        Container(height: 1, color: AppColors.gridFine.withValues(alpha: 0.5)),
                         const SizedBox(height: 12),
                         Row(children: [
                           const Icon(Icons.show_chart, size: 13, color: AppColors.textSecondary),
@@ -269,8 +269,8 @@ class _CryptoDetailScreenState extends State<CryptoDetailScreen> {
                               horizontalInterval: 0.5,
                               getDrawingHorizontalLine: (v) => FlLine(
                                 color: v == 0
-                                    ? Colors.white.withValues(alpha: 0.15)
-                                    : Colors.white.withValues(alpha: 0.04),
+                                    ? AppColors.borderSubtle
+                                    : AppColors.gridFine.withValues(alpha: 0.5),
                                 strokeWidth: v == 0 ? 1 : 0.8,
                                 dashArray: v == 0 ? [4, 3] : null,
                               ),
@@ -383,7 +383,7 @@ class _StatCard extends StatelessWidget {
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: AppColors.surfaceCard,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.zero,
       border: Border.all(color: AppColors.borderSubtle),
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -411,13 +411,13 @@ class _NewsCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         border: Border(left: BorderSide(color: color, width: 3)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           width: 36, height: 36,
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.zero),
           alignment: Alignment.center,
           child: Text('${log.score >= 0 ? '+' : ''}${log.score.toStringAsFixed(1)}',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
