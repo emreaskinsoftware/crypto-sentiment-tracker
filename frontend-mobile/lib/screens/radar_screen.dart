@@ -79,10 +79,11 @@ class _RadarScreenState extends State<RadarScreen> {
   void initState() {
     super.initState();
     _load();
+    // Cooldown yazma pipeline'ını sınırlar; _load() yalnızca GET yapar, bu
+    // yüzden sadece devam eden bir yenileme sırasında atlanır. (Aksi hâlde
+    // 15 dakikalık cooldown tüm fiyat güncellemelerini dondururdu.)
     _autoRefreshTimer = Timer.periodic(_autoRefreshInterval, (_) {
-      if (_kind == _RefreshKind.idle || _kind == _RefreshKind.done) {
-        _load();
-      }
+      if (_kind != _RefreshKind.running) _load();
     });
   }
 

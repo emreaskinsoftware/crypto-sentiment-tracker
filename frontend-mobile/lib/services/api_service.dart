@@ -65,8 +65,23 @@ class ApiService {
     }).toList();
   }
 
+  // Sentiment sembol başına bir istek gerektirir (20 sembol = 20 istek) ve
+  // /assets/{symbol}/sentiment-summary 60/dakika ile sınırlıdır. Ekran 30
+  // saniyede bir yenilendiği için istekler sınırı aşar; 429 yutulup skor 0.0
+  // ("Neutral") olarak gösterilirdi. Skorlar sentiment pipeline'ı 15 dakikada
+  // bir çalıştığı için bu TTL boyunca cache'lenir ve başarısız sembollerde son
+  // bilinen skor korunur.
+  static final Map<String, double> _sentimentCache = {};
+  static DateTime? _sentimentCachedAt;
+  static const _sentimentTtl = Duration(minutes: 5);
+
   static Future<Map<String, double>> _fetchAllSentimentScores(
       List<CryptoAsset> assets) async {
+    final cachedAt = _sentimentCachedAt;
+    if (cachedAt != null && DateTime.now().difference(cachedAt) < _sentimentTtl) {
+      return Map.of(_sentimentCache);
+    }
+
     final scores = <String, double>{};
     await Future.wait(assets.map((asset) async {
       try {
@@ -79,6 +94,19 @@ class ApiService {
         }
       } catch (_) {}
     }));
+
+    // İsteği başarısız olan sembol için son bilinen skoru koru — aksi hâlde
+    // gerçek skor 0.0/"Neutral" olarak gösterilir.
+    for (final entry in _sentimentCache.entries) {
+      scores.putIfAbsent(entry.key, () => entry.value);
+    }
+
+    if (scores.isNotEmpty) {
+      _sentimentCache
+        ..clear()
+        ..addAll(scores);
+      _sentimentCachedAt = DateTime.now();
+    }
     return scores;
   }
 
@@ -120,6 +148,35 @@ class ApiService {
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
+  /// Hata gövdesinden kullanıcıya gösterilebilir tek bir mesaj çıkarır.
+  ///
+  /// 422'de FastAPI'nin `detail` alanı bir Pydantic hata listesidir ve her
+  /// eleman kullanıcının gönderdiği ham değeri (`input` — yani şifresini)
+  /// taşır. Gövde asla doğrudan string'e çevrilmez; sadece `msg` alanları
+  /// alınır. slowapi 429'da `detail` yerine `error` döndürdüğü için o da
+  /// ayrıca ele alınır.
+  static String _errorDetail(String responseBody, String fallback) {
+    try {
+      final body = json.decode(responseBody);
+      if (body is! Map<String, dynamic>) return fallback;
+
+      final detail = body['detail'];
+      if (detail is String && detail.isNotEmpty) return detail;
+      if (detail is List) {
+        final messages = detail
+            .map((e) => e is Map && e['msg'] is String ? e['msg'] as String : null)
+            .whereType<String>()
+            .toList();
+        if (messages.isNotEmpty) return messages.join(', ');
+      }
+
+      // slowapi rate limit: {"error": "Rate limit exceeded: ..."}
+      final error = body['error'];
+      if (error is String && error.isNotEmpty) return error;
+    } catch (_) {}
+    return fallback;
+  }
+
   /// Login yapar, başarıda {'access_token': ..., 'refresh_token': ...} döner.
   /// Hata durumunda {'error': '<mesaj>'} döner.
   static Future<Map<String, String>> login(String email, String password) async {
@@ -136,8 +193,7 @@ class ApiService {
           'refresh_token': data['refresh_token'] as String,
         };
       }
-      final body = json.decode(res.body) as Map<String, dynamic>? ?? {};
-      return {'error': body['detail']?.toString() ?? 'E-posta veya şifre hatalı.'};
+      return {'error': _errorDetail(res.body, 'E-posta veya şifre hatalı.')};
     } catch (_) {
       return {'error': 'Sunucuya bağlanılamadı.'};
     }
@@ -152,8 +208,7 @@ class ApiService {
         body: json.encode({'email': email, 'password': password, 'full_name': fullName}),
       );
       if (res.statusCode == 201) return null;
-      final body = json.decode(res.body) as Map<String, dynamic>? ?? {};
-      return body['detail']?.toString() ?? 'Kayıt başarısız.';
+      return _errorDetail(res.body, 'Kayıt başarısız.');
     } catch (_) {
       return 'Sunucuya bağlanılamadı.';
     }
@@ -161,12 +216,15 @@ class ApiService {
 
   // ── Watchlist (auth required) ─────────────────────────────────────────────
 
-  static Future<List<CryptoAsset>> fetchWatchlist(String token) async {
+  /// Watchlist'i çeker. 401'de sessizce token yeniler ve bir kez daha dener;
+  /// yenileme de başarısızsa AuthService logout yapar ve ekran giriş formuna
+  /// döner (aksi hâlde süresi dolmuş token kalıcı olarak boş liste gösterirdi).
+  static Future<List<CryptoAsset>> fetchWatchlist() async {
     try {
-      final res = await http.get(
-        Uri.parse('$_baseUrl/watchlist/'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
+      final res = await authedRequest((token) => http.get(
+            Uri.parse('$_baseUrl/watchlist/'),
+            headers: {'Authorization': 'Bearer $token'},
+          ));
       if (res.statusCode != 200) return [];
       final List<dynamic> data = json.decode(res.body);
       return data
@@ -232,10 +290,12 @@ class ApiService {
 
   // ── Alerts (auth required) ───────────────────────────────────────────────
 
-  static Future<List<Map<String, dynamic>>> fetchAlerts(String token) async {
+  /// Alarmları çeker. fetchWatchlist gibi 401'de token yenileyip tekrar dener.
+  static Future<List<Map<String, dynamic>>> fetchAlerts() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/alerts/'),
-          headers: {'Authorization': 'Bearer $token'});
+      final res = await authedRequest((token) => http.get(
+          Uri.parse('$_baseUrl/alerts/'),
+          headers: {'Authorization': 'Bearer $token'}));
       if (res.statusCode != 200) return [];
       return List<Map<String, dynamic>>.from(json.decode(res.body));
     } catch (_) {

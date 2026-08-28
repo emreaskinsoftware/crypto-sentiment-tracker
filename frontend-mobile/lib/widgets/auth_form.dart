@@ -47,26 +47,39 @@ class _AuthFormState extends State<AuthForm> {
     if (_isRegister) {
       final error = await ApiService.register(
           _emailCtrl.text.trim(), _passCtrl.text, _nameCtrl.text.trim());
-      setState(() => _loading = false);
+      if (!mounted) return;
       if (error == null) {
-        if (!mounted) return;
-        // Kayıt başarılı → otomatik giriş yap
+        // Kayıt başarılı → otomatik giriş yap. _loading burada kapatılmaz;
+        // aksi hâlde buton otomatik giriş sürerken tekrar aktifleşir ve
+        // ikinci bir kayıt isteği gönderilebilir.
         final tokens = await ApiService.login(
             _emailCtrl.text.trim(), _passCtrl.text);
+        if (!mounted) return;
+        setState(() => _loading = false);
         if (!tokens.containsKey('error')) {
           AuthService.instance.setAuth(
               tokens['access_token']!, tokens['refresh_token']!, _emailCtrl.text.trim());
           widget.onSuccess?.call();
         } else {
-          setState(() => _serverError = 'Hesap oluşturuldu. Şimdi giriş yapabilirsiniz.');
-          setState(() => _isRegister = false);
+          // Hesap açıldı ama otomatik giriş başarısız — kullanıcıya gerçek
+          // nedeni göster, yoksa hatayı fark etmeden tekrar deniyor.
+          // Not: metin bilerek 'oluşturuldu' içermez — banner o kelimeyi
+          // başarı (yeşil) olarak renklendiriyor, bu ise bir hata.
+          setState(() {
+            _serverError = 'Hesap açıldı, giriş yapılamadı: ${tokens['error']}';
+            _isRegister = false;
+          });
         }
       } else {
-        setState(() => _serverError = error);
+        setState(() {
+          _loading = false;
+          _serverError = error;
+        });
       }
     } else {
       final tokens = await ApiService.login(
           _emailCtrl.text.trim(), _passCtrl.text);
+      if (!mounted) return;
       setState(() => _loading = false);
       if (!tokens.containsKey('error')) {
         AuthService.instance.setAuth(

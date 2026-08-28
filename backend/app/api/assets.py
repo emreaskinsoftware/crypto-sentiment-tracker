@@ -34,6 +34,32 @@ class LivePrice(BaseModel):
     change_24h: float
 
 
+# /live-prices istemci tarafında polling ile çağrılır (web 30s, mobil 30s).
+# Her çağrı Binance'e çıkmak yerine kısa ömürlü bir cache paylaşılır: eşzamanlı
+# istemci sayısından bağımsız olarak dakikada en fazla ~12 dış istek yapılır.
+_LIVE_PRICE_TTL_SECONDS = 5
+_live_price_cache: dict[str, dict[str, float]] = {}
+_live_price_cached_at: datetime | None = None
+
+
+def _cached_all_prices() -> dict[str, dict[str, float]]:
+    global _live_price_cached_at
+    now = datetime.now(timezone.utc)
+    if (
+        _live_price_cached_at is not None
+        and _live_price_cache
+        and (now - _live_price_cached_at).total_seconds() < _LIVE_PRICE_TTL_SECONDS
+    ):
+        return _live_price_cache
+
+    raw = fetch_all_prices()
+    if raw:
+        _live_price_cache.clear()
+        _live_price_cache.update(raw)
+        _live_price_cached_at = now
+    return raw
+
+
 class AddAssetRequest(BaseModel):
     symbol: str
 
@@ -42,7 +68,7 @@ class AddAssetRequest(BaseModel):
 @limiter.limit("30/minute")
 def get_live_prices(request: Request, db: Session = Depends(get_db)):
     """Binance'den anlık fiyat çeker (DB'ye yazmaz). Polling için kullanılır."""
-    raw = fetch_all_prices()
+    raw = _cached_all_prices()
     # Sadece DB'de kayıtlı asset'leri döndür
     db_symbols = {
         r[0] for r in db.query(Asset.symbol).filter(Asset.symbol.in_(list(raw.keys()))).all()
