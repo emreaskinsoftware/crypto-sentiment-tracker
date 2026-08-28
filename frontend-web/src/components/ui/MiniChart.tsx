@@ -7,11 +7,12 @@ interface MiniChartProps {
   height?: number;
 }
 
+/** Kalem izi — ince, sabit kalınlıkta, süsleme yok. */
 export function MiniChart({
   data,
   color,
-  width = 120,
-  height = 40,
+  width = 96,
+  height = 26,
 }: MiniChartProps) {
   if (data.length < 2) return null;
 
@@ -23,17 +24,17 @@ export function MiniChart({
     .map((value, index) => {
       const x = (index / (data.length - 1)) * width;
       const y = height - ((value - min) / range) * height;
-      return `${x},${y}`;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} aria-hidden="true">
       <polyline
         points={points}
         fill="none"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.25}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

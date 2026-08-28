@@ -1,8 +1,5 @@
 "use client";
 
-import {
-  RefreshCw, Clock, CheckCircle, AlertCircle, Loader2, LogIn,
-} from "lucide-react";
 import { usePipelineRefresh } from "@/hooks/usePipelineRefresh";
 import { PipelineProgressPanel } from "./PipelineProgressPanel";
 import { cn } from "@/lib/utils";
@@ -10,84 +7,73 @@ import { cn } from "@/lib/utils";
 function fmtSeconds(secs: number): string {
   const m = Math.floor(secs / 60);
   const s = secs % 60;
-  return m > 0 ? `${m}dk ${s}sn` : `${s}sn`;
+  return m > 0 ? `${m}dk ${String(s).padStart(2, "0")}sn` : `${s}sn`;
 }
 
 export function DashboardHeader() {
   const { state, trigger } = usePipelineRefresh();
 
-  const isDisabled =
-    state.kind === "running" ||
-    state.kind === "cooldown" ||
-    state.kind === "done" ||
-    state.kind === "unauthenticated";
+  const busy = state.kind !== "idle";
+
+  // Eylem adı akış boyunca aynı kalır: "örnek al" → "alınıyor" → "alındı"
+  const label =
+    state.kind === "idle"
+      ? "Yeni örnek al"
+      : state.kind === "running"
+        ? "Örnek alınıyor"
+        : state.kind === "cooldown"
+          ? `Sonraki örnek ${fmtSeconds(state.remainingSeconds)}`
+          : state.kind === "done"
+            ? "Örnek alındı"
+            : state.kind === "unauthenticated"
+              ? "Giriş gerekli"
+              : "Alınamadı";
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        {/* Title block */}
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-semibold uppercase tracking-widest text-primary/70">
-              Live Dashboard
-            </span>
-          </div>
-          <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">
-            Market Overview
+          <h1 className="font-label text-[26px] font-700 uppercase leading-none tracking-[0.06em] text-ink">
+            Kayıt şeridi
           </h1>
-          <p className="text-sm text-text-secondary mt-0.5">
-            Gerçek zamanlı kripto fiyatları ve FinBERT sentiment analizi
+          <p className="font-data mt-2 text-[12px] leading-relaxed text-ink-soft">
+            Haber duygusu ve fiyat, aynı zaman ekseninde. Cihaz 15 dakikada bir
+            örnek alır; aradaki fiyatlar canlı okunur.
           </p>
         </div>
 
-        {/* Refresh button */}
-        <div className="flex flex-col items-end gap-2 shrink-0">
+        <div className="flex flex-col items-start gap-1.5 sm:items-end">
           <button
             onClick={trigger}
-            disabled={isDisabled}
+            disabled={busy}
             className={cn(
-              "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-200",
+              "border px-4 py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] transition-all duration-150",
               state.kind === "idle"
-                ? "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 hover:shadow-[0_0_16px_rgba(16,185,129,0.2)] cursor-pointer"
-                : state.kind === "running"
-                ? "bg-blue-500/10 border border-blue-500/30 text-blue-400 cursor-not-allowed"
-                : state.kind === "cooldown"
-                ? "bg-warning/10 border border-warning/30 text-warning cursor-not-allowed"
-                : state.kind === "done"
-                ? "bg-primary/10 border border-primary/30 text-primary cursor-not-allowed"
-                : state.kind === "unauthenticated"
-                ? "bg-white/5 border border-white/10 text-text-secondary cursor-not-allowed"
-                : "bg-danger/10 border border-danger/30 text-danger cursor-not-allowed"
+                ? "border-ink bg-ink text-paper shadow-[3px_3px_0_var(--color-trace)] hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-trace)] active:translate-y-0 active:shadow-[2px_2px_0_var(--color-trace)] cursor-pointer"
+                : state.kind === "error" || state.kind === "unauthenticated"
+                  ? "border-trace bg-paper text-trace cursor-not-allowed"
+                  : "border-ink/30 bg-paper text-ink-soft cursor-not-allowed"
             )}
           >
-            {state.kind === "idle" && <><RefreshCw size={14} /> Veriyi Yenile</>}
-            {state.kind === "running" && <><Loader2 size={14} className="animate-spin" /> Analiz yapılıyor…</>}
-            {state.kind === "cooldown" && <><Clock size={14} /> {fmtSeconds(state.remainingSeconds)}</>}
-            {state.kind === "done" && <><CheckCircle size={14} /> Güncellendi</>}
-            {state.kind === "error" && <><AlertCircle size={14} /> Hata</>}
-            {state.kind === "unauthenticated" && <><LogIn size={14} /> Giriş Gerekli</>}
+            {label}
           </button>
 
           {state.kind === "unauthenticated" && (
-            <p className="text-[11px] text-text-secondary text-right">
-              Ayarlar&apos;dan giriş yapın
+            <p className="font-data text-[10px] text-ink-soft">
+              Ayarlar sayfasından giriş yapın.
             </p>
           )}
           {state.kind === "cooldown" && (
-            <p className="text-[11px] text-warning/70 text-right">
-              15 dk&apos;da bir yenileyebilirsiniz
+            <p className="font-data text-[10px] text-ink-soft">
+              Cihaz 15 dakikada bir örnek alır.
             </p>
           )}
           {state.kind === "error" && "message" in state && (
-            <p className="text-[11px] text-danger/70 text-right">
-              {state.message}
-            </p>
+            <p className="font-data text-[10px] text-trace">{state.message}</p>
           )}
         </div>
       </div>
 
-      {/* Floating pipeline progress panel */}
       <PipelineProgressPanel state={state} />
     </>
   );

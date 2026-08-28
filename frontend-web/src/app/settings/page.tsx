@@ -55,23 +55,23 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
-        <p className="text-sm text-text-secondary mt-1">Manage your account preferences</p>
+        <h1 className="font-label text-[26px] font-700 uppercase leading-none tracking-[0.06em] text-ink">Ayarlar</h1>
+        <p className="text-sm text-ink-soft mt-1">Hesap tercihleriniz</p>
       </div>
 
       {/* Account / Auth */}
-      <div className="rounded-2xl bg-surface-light border border-black/5 p-6">
+      <div className="bg-paper border border-ink/20 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <User className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold text-text-primary">Account</h2>
+          <User className="h-5 w-5 text-trace-alt" />
+          <h2 className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Hesap</h2>
         </div>
 
         {message && (
           <div
-            className={`flex items-center gap-2 rounded-xl px-4 py-3 mb-4 text-sm font-medium ${
+            className={`flex items-center gap-2  px-4 py-3 mb-4 text-sm font-medium ${
               message.type === "success"
-                ? "bg-pastel-green text-primary"
-                : "bg-pastel-red text-danger"
+                ? "bg-paper-deep text-trace-alt"
+                : "bg-paper-deep text-trace"
             }`}
           >
             {message.type === "success" ? (
@@ -85,16 +85,16 @@ export default function SettingsPage() {
 
         {isLoggedIn ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 rounded-xl bg-pastel-green border border-primary/10 p-4">
-              <CheckCircle className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-3 bg-paper-deep border border-trace-alt/10 p-4">
+              <CheckCircle className="h-5 w-5 text-trace-alt" />
               <div>
-                <p className="text-sm font-bold text-text-primary">Logged in</p>
-                <p className="text-xs text-text-secondary">Watchlist and Alerts features are active.</p>
+                <p className="text-sm font-bold text-ink">Logged in</p>
+                <p className="text-xs text-ink-soft">Watchlist and Alerts features are active.</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 rounded-xl border border-black/10 bg-bg-light px-4 py-2.5 text-sm font-bold text-text-primary hover:bg-black/5 transition-colors"
+              className="flex items-center gap-2 border border-ink/20 bg-paper px-4 py-2.5 text-sm font-bold text-ink hover:bg-ink/8 transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Log Out
@@ -106,73 +106,73 @@ export default function SettingsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setMode("login")}
-                className={`flex-1 rounded-xl py-2 text-sm font-bold transition-colors ${
+                className={`flex-1 border border-ink py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] transition-colors ${
                   mode === "login"
-                    ? "bg-primary text-white"
-                    : "bg-bg-light text-text-secondary hover:bg-black/5"
+                    ? "bg-ink text-paper"
+                    : "bg-paper text-ink-soft hover:bg-grid-fine/60"
                 }`}
               >
-                Log In
+                Giriş yap
               </button>
               <button
                 onClick={() => setMode("register")}
-                className={`flex-1 rounded-xl py-2 text-sm font-bold transition-colors ${
+                className={`flex-1 border border-ink py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] transition-colors ${
                   mode === "register"
-                    ? "bg-primary text-white"
-                    : "bg-bg-light text-text-secondary hover:bg-black/5"
+                    ? "bg-ink text-paper"
+                    : "bg-paper text-ink-soft hover:bg-grid-fine/60"
                 }`}
               >
-                Register
+                Kayıt ol
               </button>
             </div>
 
             <form onSubmit={mode === "login" ? handleLogin : handleRegister} className="space-y-3">
               {mode === "register" && (
                 <div>
-                  <label className="text-sm font-medium text-text-secondary block mb-1.5">Full Name</label>
+                  <label className="text-sm font-medium text-ink-soft block mb-1.5">Full Name</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
                     placeholder="Your Name"
-                    className="w-full rounded-xl border-none bg-bg-light py-3 px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full border-none bg-paper py-3 px-4 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-trace-alt/30"
                   />
                 </div>
               )}
               <div>
-                <label className="text-sm font-medium text-text-secondary block mb-1.5">Email</label>
+                <label className="text-sm font-medium text-ink-soft block mb-1.5">E-posta</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border-none bg-bg-light py-3 px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full border-none bg-paper py-3 px-4 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-trace-alt/30"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-text-secondary block mb-1.5">Password</label>
+                <label className="text-sm font-medium text-ink-soft block mb-1.5">Şifre</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full rounded-xl border-none bg-bg-light py-3 px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full border-none bg-paper py-3 px-4 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-trace-alt/30"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-white hover:bg-primary-dark transition-colors disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 border border-ink bg-ink px-4 py-2 font-label text-[11px] font-600 uppercase tracking-[0.16em] text-paper shadow-[3px_3px_0_var(--color-trace)] transition-all duration-150 hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-trace)] active:translate-y-0 active:shadow-[2px_2px_0_var(--color-trace)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <LogIn className="h-4 w-4" />
                 )}
-                {mode === "login" ? "Log In" : "Create Account"}
+                {mode === "login" ? "Giriş yap" : "Hesap oluştur"}
               </button>
             </form>
           </div>
@@ -180,38 +180,38 @@ export default function SettingsPage() {
       </div>
 
       {/* Notifications */}
-      <div className="rounded-2xl bg-surface-light border border-black/5 p-6">
+      <div className="bg-paper border border-ink/20 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <Bell className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold text-text-primary">Notifications</h2>
+          <Bell className="h-5 w-5 text-trace-alt" />
+          <h2 className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Bildirimler</h2>
         </div>
         <div className="space-y-4">
           {[
-            { label: "Price Alerts", desc: "Get notified when prices hit your targets" },
-            { label: "Sentiment Alerts", desc: "Alerts when sentiment score changes drastically" },
-            { label: "Weekly Report", desc: "Weekly summary of your portfolio sentiment" },
+            { label: "Fiyat alarmları", desc: "Fiyat hedefe ulaştığında bildirim gönderilir" },
+            { label: "Duygu alarmları", desc: "Duygu skoru sert değiştiğinde bildirim gönderilir" },
+            { label: "Haftalık özet", desc: "Portföyünüzün duygu özeti haftada bir gönderilir" },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-text-primary">{item.label}</p>
-                <p className="text-xs text-text-secondary">{item.desc}</p>
+                <p className="text-sm font-semibold text-ink">{item.label}</p>
+                <p className="text-xs text-ink-soft">{item.desc}</p>
               </div>
-              <div className="h-6 w-11 rounded-full bg-primary opacity-80 relative cursor-pointer">
-                <div className="absolute right-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm" />
-              </div>
+              <span className="relative h-5 w-10 shrink-0 border border-ink bg-ink" aria-hidden="true">
+                <span className="absolute right-0.5 top-0.5 h-3.5 w-4 bg-paper" />
+              </span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Security */}
-      <div className="rounded-2xl bg-surface-light border border-black/5 p-6">
+      <div className="bg-paper border border-ink/20 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <Shield className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold text-text-primary">Security</h2>
+          <Shield className="h-5 w-5 text-trace-alt" />
+          <h2 className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Güvenlik</h2>
         </div>
-        <p className="text-sm text-text-secondary">
-          Passwords are securely hashed with bcrypt. JWT tokens expire after 60 minutes.
+        <p className="text-sm text-ink-soft">
+          Şifreler bcrypt ile saklanır. Oturum anahtarı 60 dakikada bir yenilenir.
         </p>
       </div>
     </div>

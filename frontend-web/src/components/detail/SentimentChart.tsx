@@ -21,13 +21,13 @@ function SentimentGauge({ score, label }: { score: number; label: string }) {
   const pct = ((score + 1) / 2) * 100; // -1..+1 → 0..100%
   const isPos = score >= 0.3;
   const isNeg = score <= -0.3;
-  const color = isPos ? "#10B981" : isNeg ? "#EF4444" : "#F59E0B";
+  const color = isPos ? "var(--color-trace-alt)" : isNeg ? "var(--color-trace)" : "var(--color-ink-faint)";
   const bgColor = isPos ? "rgba(16,185,129,0.08)" : isNeg ? "rgba(239,68,68,0.08)" : "rgba(245,158,11,0.08)";
   const borderColor = isPos ? "rgba(16,185,129,0.2)" : isNeg ? "rgba(239,68,68,0.2)" : "rgba(245,158,11,0.2)";
 
   return (
     <div
-      className="rounded-xl p-4 flex flex-col gap-3"
+      className="p-4 flex flex-col gap-3"
       style={{ background: bgColor, border: `1px solid ${borderColor}` }}
     >
       <div className="flex items-center justify-between">
@@ -47,7 +47,7 @@ function SentimentGauge({ score, label }: { score: number; label: string }) {
         {/* Gradient fill */}
         <div className="absolute inset-0 rounded-full"
           style={{
-            background: "linear-gradient(to right, #EF4444 0%, #F59E0B 50%, #10B981 100%)",
+            background: "linear-gradient(to right, var(--color-trace) 0%, var(--color-ink-faint) 50%, var(--color-trace-alt) 100%)",
             opacity: 0.3,
           }} />
         {/* Pointer */}
@@ -57,7 +57,7 @@ function SentimentGauge({ score, label }: { score: number; label: string }) {
         />
       </div>
 
-      <div className="flex justify-between text-[10px] text-text-secondary">
+      <div className="flex justify-between text-[10px] text-ink-soft">
         <span>-1.0 Negatif</span>
         <span>0 Nötr</span>
         <span>+1.0 Pozitif</span>
@@ -73,10 +73,10 @@ function ChartTooltip({ active, payload, label }: any) {
   const score: number = payload[0]?.value ?? 0;
   const isPos = score >= 0.3;
   const isNeg = score <= -0.3;
-  const color = isPos ? "#10B981" : isNeg ? "#EF4444" : "#F59E0B";
+  const color = isPos ? "var(--color-trace-alt)" : isNeg ? "var(--color-trace)" : "var(--color-ink-faint)";
   return (
-    <div className="rounded-xl border border-white/10 bg-surface-card px-3 py-2 shadow-lg text-xs">
-      <p className="text-text-secondary mb-1">{label}</p>
+    <div className="border border-ink/12 bg-paper px-3 py-2 shadow-[2px_2px_0_var(--color-ink)] text-xs">
+      <p className="text-ink-soft mb-1">{label}</p>
       <p className="font-bold" style={{ color }}>
         {score > 0 ? "+" : ""}{score.toFixed(3)}
         <span className="ml-1.5 font-normal opacity-60">
@@ -108,7 +108,7 @@ export function SentimentChart({ data, currentScore, currentLabel }: SentimentCh
   const avgScore = data.reduce((s, d) => s + d.score, 0) / data.length;
   const isPos = avgScore >= 0.1;
   const isNeg = avgScore <= -0.1;
-  const lineColor = isPos ? "#10B981" : isNeg ? "#EF4444" : "#F59E0B";
+  const lineColor = isPos ? "var(--color-trace-alt)" : isNeg ? "var(--color-trace)" : "var(--color-ink-faint)";
 
   return (
     <ResponsiveContainer width="100%" height={140}>
@@ -122,13 +122,13 @@ export function SentimentChart({ data, currentScore, currentLabel }: SentimentCh
 
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 10, fill: "#6B7280" }}
+          tick={{ fontSize: 10, fill: "var(--color-ink-soft)" }}
           tickLine={false}
           axisLine={false}
           interval={0}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: "#6B7280" }}
+          tick={{ fontSize: 10, fill: "var(--color-ink-soft)" }}
           tickLine={false}
           axisLine={false}
           domain={[-1, 1]}
@@ -149,7 +149,7 @@ export function SentimentChart({ data, currentScore, currentLabel }: SentimentCh
           strokeWidth={2}
           fill="url(#sentGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: lineColor, stroke: "#fff", strokeWidth: 1.5 }}
+          activeDot={{ r: 4, fill: lineColor, stroke: "var(--color-paper)", strokeWidth: 1.5 }}
           isAnimationActive={false}
         />
       </AreaChart>

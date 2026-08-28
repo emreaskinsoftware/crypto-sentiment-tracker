@@ -24,9 +24,9 @@ export function RefreshButton() {
         onClick={trigger}
         disabled={isDisabled}
         className={[
-          "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
+          "flex items-center gap-2  px-4 py-2 text-sm font-semibold transition-all",
           state.kind === "idle"
-            ? "bg-pastel-green border border-primary/20 text-primary hover:bg-primary/10 cursor-pointer"
+            ? "bg-paper-deep border border-trace-alt/20 text-trace-alt hover:bg-trace-alt/10 cursor-pointer"
             : state.kind === "running"
             ? "bg-blue-50 border border-blue-200 text-blue-600 cursor-not-allowed"
             : state.kind === "cooldown"
@@ -76,7 +76,7 @@ export function RefreshButton() {
 
       {/* Bilgi banner'ı */}
       {state.kind === "running" && (
-        <p className="text-xs text-text-secondary max-w-[220px] text-right leading-snug">
+        <p className="text-xs text-ink-soft max-w-[220px] text-right leading-snug">
           Haber verisi çekiliyor ve FinBERT ile analiz ediliyor.
           Bu işlem ~30–60 sn sürebilir.
         </p>
@@ -92,7 +92,7 @@ export function RefreshButton() {
         </p>
       )}
       {state.kind === "unauthenticated" && (
-        <p className="text-xs text-text-secondary max-w-[220px] text-right leading-snug">
+        <p className="text-xs text-ink-soft max-w-[220px] text-right leading-snug">
           Pipeline tetiklemek için Ayarlar&apos;dan giriş yapın.
         </p>
       )}

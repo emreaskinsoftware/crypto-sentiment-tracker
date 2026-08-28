@@ -17,12 +17,6 @@ import {
   type ApiAsset, type ApiSentimentLog, type ApiChartPoint, type ApiSentimentSource, type ApiCorrelation,
 } from "@/lib/api";
 
-const symbolColors: Record<string, string> = {
-  BTC: "bg-orange-500", ETH: "bg-indigo-500", SOL: "bg-purple-500",
-  ADA: "bg-blue-500",   XRP: "bg-slate-700",  DOGE: "bg-yellow-500",
-  AVAX: "bg-red-500",   DOT: "bg-pink-500",
-};
-
 export default function CryptoDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
@@ -136,7 +130,7 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-trace-alt" />
       </div>
     );
   }
@@ -144,8 +138,8 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
   if (!asset) {
     return (
       <div className="flex flex-col items-center justify-center h-96">
-        <p className="text-lg font-bold text-text-primary">Asset not found</p>
-        <Link href="/" className="text-primary text-sm mt-2 hover:underline">Back to Dashboard</Link>
+        <p className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Kanal bulunamadı</p>
+        <Link href="/" className="text-trace-alt text-sm mt-2 hover:underline">Back to Dashboard</Link>
       </div>
     );
   }
@@ -154,17 +148,17 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
     <div className="space-y-6">
       {/* Back + Header */}
       <div className="flex items-center gap-4">
-        <Link href="/" className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-card border border-white/5 hover:bg-black/5 transition-colors">
-          <ArrowLeft className="h-5 w-5 text-text-primary" />
+        <Link href="/" className="flex h-10 w-10 items-center justify-center bg-paper border border-ink/12 hover:bg-ink/8 transition-colors">
+          <ArrowLeft className="h-5 w-5 text-ink" />
         </Link>
         <div className="flex items-center gap-3 flex-1">
-          <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl text-white text-sm font-bold shadow-sm", symbolColors[asset.symbol] || "bg-slate-500")}>
+          <div className={cn("flex h-12 w-12 items-center justify-center  text-paper text-sm font-bold shadow-sm", "bg-ink")}>
             {asset.symbol}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-text-primary">{asset.name}</h1>
-              <span className="text-sm text-text-secondary">{asset.symbol}</span>
+              <h1 className="font-label text-[26px] font-700 uppercase leading-none tracking-[0.06em] text-ink">{asset.name}</h1>
+              <span className="text-sm text-ink-soft">{asset.symbol}</span>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <SentimentBadge score={sentimentScore} size="sm" />
@@ -176,34 +170,34 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
           onClick={handleWatchlistToggle}
           disabled={watchlistLoading}
           title={isWatchlisted ? "Watchlist'ten çıkar" : "Watchlist'e ekle"}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-card border border-white/5 hover:bg-black/5 transition-colors disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center bg-paper border border-ink/12 hover:bg-ink/8 transition-colors disabled:opacity-50"
         >
           {watchlistLoading
-            ? <Loader2 className="h-5 w-5 animate-spin text-text-secondary" />
-            : <Star className={cn("h-5 w-5", isWatchlisted ? "fill-warning text-warning" : "text-text-secondary")} />
+            ? <Loader2 className="h-5 w-5 animate-spin text-ink-soft" />
+            : <Star className={cn("h-5 w-5", isWatchlisted ? "fill-ink-soft text-ink-soft" : "text-ink-soft")} />
           }
         </button>
       </div>
 
       {/* Price Overview */}
-      <div className="rounded-2xl bg-surface-card border border-white/5 p-6">
+      <div className="bg-paper border border-ink/12 p-6">
         <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-4">
           <div className="flex-1">
-            <p className="text-xs text-text-secondary mb-1 uppercase tracking-wider font-semibold">Güncel Fiyat</p>
-            <p className="text-3xl font-extrabold text-text-primary">{formatCurrency(asset.current_price)}</p>
+            <p className="text-xs text-ink-soft mb-1 uppercase tracking-wider font-semibold">Güncel Fiyat</p>
+            <p className="text-3xl font-extrabold text-ink">{formatCurrency(asset.current_price)}</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold",
-              asset.change_24h >= 0 ? "bg-primary/10 text-primary border border-primary/20" : "bg-danger/10 text-danger border border-danger/20")}>
+            <div className={cn("flex items-center gap-1.5 border px-2.5 py-1 font-data text-[12px]",
+              asset.change_24h >= 0 ? "bg-trace-alt/10 text-trace-alt border border-trace-alt/20" : "bg-trace/10 text-trace border border-trace/20")}>
               {asset.change_24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
               {asset.change_24h >= 0 ? "+" : ""}{asset.change_24h.toFixed(2)}%
             </div>
             {/* Timeframe selector */}
-            <div className="flex rounded-xl bg-white/5 border border-white/8 overflow-hidden">
+            <div className="flex bg-grid-fine/40 border border-ink/12 overflow-hidden">
               {(["24h", "7d", "30d"] as const).map((tf) => (
                 <button key={tf} onClick={() => setTimeframe(tf)}
                   className={cn("px-3 py-1.5 text-xs font-bold transition-colors",
-                    timeframe === tf ? "bg-primary/20 text-primary" : "text-text-secondary hover:text-text-primary")}>
+                    timeframe === tf ? "bg-trace-alt/20 text-trace-alt" : "text-ink-soft hover:text-ink")}>
                   {tf}
                 </button>
               ))}
@@ -212,18 +206,18 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
         </div>
 
         {priceHistory.length > 1
-          ? <PriceChart data={priceHistory} color={asset.change_24h >= 0 ? "#10B981" : "#EF4444"} />
-          : <div className="h-32 flex items-center justify-center text-text-secondary text-sm">
+          ? <PriceChart data={priceHistory} color={asset.change_24h >= 0 ? "var(--color-trace-alt)" : "var(--color-trace)"} />
+          : <div className="h-32 flex items-center justify-center text-ink-soft text-sm">
               Bu zaman dilimi için yeterli veri yok
             </div>
         }
 
         {/* Sentiment Trend — fiyat grafiğinin hemen altında, aynı timeframe */}
-        <div className="mt-4 pt-4 border-t border-white/5">
+        <div className="mt-4 pt-4 border-t border-ink/12">
           <div className="flex items-center gap-2 mb-3">
-            <Activity className="h-4 w-4 text-text-secondary" />
-            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Sentiment Trend</span>
-            <span className="ml-auto text-xs text-text-secondary">
+            <Activity className="h-4 w-4 text-ink-soft" />
+            <span className="text-xs font-semibold text-ink-soft uppercase tracking-wider">Sentiment Trend</span>
+            <span className="ml-auto text-xs text-ink-soft">
               {sentimentScore > 0 ? "+" : ""}{sentimentScore.toFixed(3)}
               <span className="ml-1.5 opacity-60">{sentimentLabel}</span>
             </span>
@@ -234,34 +228,34 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl bg-primary/5 border border-primary/15 p-4">
+        <div className="bg-trace-alt/5 border border-trace-alt/15 p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Activity className="h-4 w-4 text-primary" />
-            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Sentiment</span>
+            <Activity className="h-4 w-4 text-trace-alt" />
+            <span className="text-xs font-semibold text-ink-soft uppercase tracking-wider">Sentiment</span>
           </div>
-          <p className="text-xl font-extrabold text-text-primary">{sentimentScore > 0 ? "+" : ""}{sentimentScore.toFixed(2)}</p>
-          <p className="text-xs text-text-secondary mt-1">{sentimentLabel}</p>
+          <p className="text-xl font-extrabold text-ink">{sentimentScore > 0 ? "+" : ""}{sentimentScore.toFixed(2)}</p>
+          <p className="text-xs text-ink-soft mt-1">{sentimentLabel}</p>
         </div>
-        <div className="rounded-2xl bg-blue-500/5 border border-blue-500/15 p-4">
+        <div className="bg-blue-500/5 border border-blue-500/15 p-4">
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="h-4 w-4 text-blue-500" />
-            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Volume 24h</span>
+            <span className="text-xs font-semibold text-ink-soft uppercase tracking-wider">Volume 24h</span>
           </div>
-          <p className="text-xl font-extrabold text-text-primary">{formatCompactNumber(asset.volume_24h)}</p>
+          <p className="text-xl font-extrabold text-ink">{formatCompactNumber(asset.volume_24h)}</p>
         </div>
-        <div className="rounded-2xl bg-warning/5 border border-warning/15 p-4">
+        <div className="bg-ink-faint/5 border border-ink/25/15 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Globe className="h-4 w-4 text-yellow-600" />
-            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Market Cap</span>
+            <span className="text-xs font-semibold text-ink-soft uppercase tracking-wider">Market Cap</span>
           </div>
-          <p className="text-xl font-extrabold text-text-primary">{formatCompactNumber(asset.market_cap)}</p>
+          <p className="text-xl font-extrabold text-ink">{formatCompactNumber(asset.market_cap)}</p>
         </div>
-        <div className="rounded-2xl bg-purple-500/5 border border-purple-500/15 p-4">
+        <div className="bg-purple-500/5 border border-purple-500/15 p-4">
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare className="h-4 w-4 text-purple-500" />
-            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">News Count</span>
+            <span className="text-xs font-semibold text-ink-soft uppercase tracking-wider">News Count</span>
           </div>
-          <p className="text-xl font-extrabold text-text-primary">{logs.length > 0 ? logs.length : "—"}</p>
+          <p className="text-xl font-extrabold text-ink">{logs.length > 0 ? logs.length : "—"}</p>
         </div>
       </div>
 
@@ -269,12 +263,12 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
       {correlation && <CorrelationCard data={correlation} />}
 
       {/* Recent News */}
-      <div className="rounded-2xl bg-surface-card border border-white/5 overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/5">
+      <div className="bg-paper border border-ink/12 overflow-hidden">
+        <div className="px-6 py-4 border-b border-ink/12">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="text-lg font-bold text-text-primary">Recent News & Analysis</h2>
-              <p className="text-sm text-text-secondary">AI-powered sentiment signals</p>
+              <h2 className="font-label text-[13px] font-600 uppercase tracking-[0.14em] text-ink">Son haberler</h2>
+              <p className="text-sm text-ink-soft">AI-powered sentiment signals</p>
             </div>
             {/* Kaynak filtre tab'ları */}
             {sources.length > 0 && (
@@ -282,10 +276,10 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
                 <button
                   onClick={() => handleSourceChange("all")}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-bold transition-colors border",
+                    "px-3 py-1.5  text-xs font-bold transition-colors border",
                     activeSource === "all"
-                      ? "bg-primary/20 text-primary border-primary/30"
-                      : "bg-white/4 text-text-secondary border-white/8 hover:text-text-primary"
+                      ? "bg-trace-alt/20 text-trace-alt border-trace-alt/30"
+                      : "bg-grid-fine/40 text-ink-soft border-ink/12 hover:text-ink"
                   )}
                 >
                   Tümü
@@ -295,24 +289,24 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
                   const isActive = activeSource === s.source;
                   const isPos = s.avg_score >= 0.3;
                   const isNeg = s.avg_score <= -0.3;
-                  const dotColor = isPos ? "bg-primary" : isNeg ? "bg-danger" : "bg-warning";
+                  const dotColor = isPos ? "bg-trace-alt" : isNeg ? "bg-trace" : "bg-ink-faint";
                   return (
                     <button
                       key={s.source}
                       onClick={() => handleSourceChange(s.source)}
                       className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors border",
+                        "flex items-center gap-1.5 px-3 py-1.5  text-xs font-bold transition-colors border",
                         isActive
-                          ? "bg-white/10 text-text-primary border-white/15"
-                          : "bg-white/4 text-text-secondary border-white/8 hover:text-text-primary"
+                          ? "bg-grid-fine/40 text-ink border-ink/12"
+                          : "bg-grid-fine/40 text-ink-soft border-ink/12 hover:text-ink"
                       )}
                     >
-                      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", dotColor)} />
+                      <span className={cn("h-1.5 w-1.5 shrink-0", dotColor)} />
                       {s.source}
                       <span className="opacity-60">{s.count}</span>
                       <span className={cn(
                         "tabular-nums",
-                        isPos ? "text-primary" : isNeg ? "text-danger" : "text-warning"
+                        isPos ? "text-trace-alt" : isNeg ? "text-trace" : "text-ink-soft"
                       )}>
                         {s.avg_score > 0 ? "+" : ""}{s.avg_score.toFixed(2)}
                       </span>
@@ -323,26 +317,26 @@ export default function CryptoDetailPage({ params }: { params: Promise<{ id: str
             )}
           </div>
         </div>
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-ink/10">
           {logsLoading
-            ? <div className="px-6 py-8 text-center"><Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" /></div>
+            ? <div className="px-6 py-8 text-center"><Loader2 className="h-5 w-5 animate-spin text-trace-alt mx-auto" /></div>
             : logs.length === 0
-            ? <div className="px-6 py-8 text-center text-sm text-text-secondary">No news analysis yet</div>
+            ? <div className="px-6 py-8 text-center text-sm text-ink-soft">No news analysis yet</div>
             : logs.map((log) => {
                 const isPositive = log.score >= 0.3;
                 const isNegative = log.score <= -0.3;
                 return (
                   <div key={log.id} className="flex items-start gap-4 px-6 py-4">
-                    <div className={cn("mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                      isPositive ? "bg-pastel-green" : isNegative ? "bg-pastel-red" : "bg-pastel-yellow")}>
+                    <div className={cn("mt-1 flex h-8 w-8 shrink-0 items-center justify-center ",
+                      isPositive ? "bg-paper-deep" : isNegative ? "bg-paper-deep" : "bg-paper-deep")}>
                       <span className={cn("text-xs font-bold",
-                        isPositive ? "text-primary" : isNegative ? "text-danger" : "text-warning")}>
+                        isPositive ? "text-trace-alt" : isNegative ? "text-trace" : "text-ink-soft")}>
                         {log.score > 0 ? "+" : ""}{log.score.toFixed(1)}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-text-primary leading-snug line-clamp-2">{log.headline}</p>
-                      <p className="text-xs text-text-secondary mt-1">
+                      <p className="text-sm font-medium text-ink leading-snug line-clamp-2">{log.headline}</p>
+                      <p className="text-xs text-ink-soft mt-1">
                         {log.source} • {new Date(log.analyzed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>

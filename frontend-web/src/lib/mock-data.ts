@@ -6,7 +6,8 @@ export interface CryptoAsset {
   change24h: number;
   volume24h: number;
   marketCap: number;
-  sentimentScore: number;
+  /** Ölçüm yoksa null — 0.0 "nötr" olarak gösterilmesin. */
+  sentimentScore: number | null;
   sentimentLabel: "Positive" | "Neutral" | "Negative";
   sparkline: number[];
   isWatchlisted: boolean;
